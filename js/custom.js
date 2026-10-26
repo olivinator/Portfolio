@@ -26,8 +26,8 @@ document.querySelectorAll('.sticky-tag-top').forEach(function (tag) {
   // Project lists: [page, name, year, cover image, (unused span from the old bento layout)]
   var P = 'images/';
   var featured = [
-    ['wellness-picture.html', 'SonderMind Wellness Picture', '2026', 'wp-clay4-cover-p-1080.jpg', 7],
-    ['claims-service-case-study.html', 'SonderMind Claims Service', '2026', 'sondermind-placeholder.svg', 5],
+    ['wellness-picture.html', 'SonderMind Wellness Picture', '2026', 'wp-cover-r6-p-1080.jpg', 7],
+    ['claims-service-case-study.html', 'SonderMind Claims Service', '2026', 'sondermind-cover-r4.svg', 5],
     ['truetoform-scan-app.html', 'TrueToForm iOS Scan App', '2021', '65b5711be460af631de91a63_Scan-app-no-text-p-1080.jpg', 5],
     ['play-movies-tv-ios-revamp.html', 'Google Play Movies & TV for iOS', '2019', '65b5711c32335b4b3146c0bc_MT-V-1-p-1080.jpg', 7]
   ];
