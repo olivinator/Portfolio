@@ -1,4 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* Headline face at every weight the pages use (pages load only some of these themselves) */
+@import url('https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@700;800;900&display=swap');
+/* Font weights that work the same in every browser. The Webflow export only shipped the Thin cut of "Avenir Next"
+   (UltraLight of "Avenirnext"), so text asking for a regular or bold weight was drawn thin. Each weight below maps to
+   the matching Avenir LT Std file (fonts are self-hosted in /fonts, no longer loaded from Webflow's servers). */
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720ce7844e205dd81e70_AvenirLTStd-Light.otf") format("opentype"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720c007bdd67e39b2029_AvenirLTStd-Roman.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenir Next"; src: url("../fonts/6590720c7872103d0a259daf_AvenirLTStd-Black.otf") format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720ce7844e205dd81e70_AvenirLTStd-Light.otf") format("opentype"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720c007bdd67e39b2029_AvenirLTStd-Roman.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirnext"; src: url("../fonts/6590720c7872103d0a259daf_AvenirLTStd-Black.otf") format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd"; src: url("../fonts/6590720c007bdd67e39b2029_AvenirLTStd-Roman.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd Book"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd Book"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd Book"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd Book"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Avenirltstd Book"; src: url("../fonts/6590720c7872103d0a259daf_AvenirLTStd-Black.otf") format("opentype"); font-weight: 900; font-style: normal; font-display: swap; }
 /*
   custom.css — your edits and new animations go here.
   Loaded after webflow.css on every page, so anything here wins.
@@ -108,7 +136,9 @@
 /* SonderMind buttons: teal hover outline and pressed fill, like the
    per-project colors on the other cards. */
 .link-block-8.sondermind:hover { border-color: #1d7a78; }
+#sondermind-rcm .link-block-8.sondermind:hover { border-color: #006b58; }
 .link-block-8.sondermind:active { background-color: #1d7a78; }
+#sondermind-rcm .link-block-8.sondermind:active { background-color: #006b58; }
 
 /* Card group = "work" tag + cards + "top" tag, sized to the cards and
    centered, so both tags hug the cards' edges. The "top" link now lives
@@ -666,7 +696,7 @@ html.top-on .top-float { opacity: 1; visibility: visible; transform: none; trans
    --------------------------------------------------------------------------- */
 :root {
   --display-font: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
-  --display-weight: 900;
+  --display-weight: 800;
   --display-weight-card: 800; /* homepage card titles run longer, so one step lighter */
   --display-tracking: -.03em;
   /* display-title size, per breakpoint */
@@ -720,7 +750,7 @@ h3[class="h2"], h3[class="h2"] > strong {
   font-weight: var(--display-weight) !important;
   font-size: clamp(30px, 3.1vw, 44px) !important;
   line-height: 1.18 !important;
-  letter-spacing: -.025em !important;
+  letter-spacing: -.01em !important;
   color: #1a1b1f;
 }
 h3[class="h2"] { max-width: 760px; text-wrap: balance; margin-bottom: 8px !important; }
@@ -882,7 +912,7 @@ html .portfolio-cursor>span{filter:drop-shadow(0 0 1px rgba(255,255,255,.9));pos
 :is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-copy:focus-visible { outline-color: #0d0c0e; }
 
 /* Footer "Go ahead, look around": display font at the same size as the project-page section titles */
-.footer .heading-2 { font-family: var(--display-font) !important; font-weight: var(--display-weight) !important; font-size: clamp(30px, 3.1vw, 44px) !important; line-height: 1.18 !important; letter-spacing: -.025em !important; color: #f4f4f6 !important; text-wrap: balance; }
+.footer .heading-2 { font-family: var(--display-font) !important; font-weight: var(--display-weight) !important; font-size: clamp(30px, 3.1vw, 44px) !important; line-height: 1.18 !important; letter-spacing: -.01em !important; color: #f4f4f6 !important; text-wrap: balance; }
 
 /* Header LinkedIn tooltip: the header sits at the top of the window, so it opens downward (like the Email one),
    and flips to a light pill when the header is over a dark area or on a dark-theme page */
@@ -973,7 +1003,7 @@ html .portfolio-cursor>span{filter:drop-shadow(0 0 1px rgba(255,255,255,.9));pos
   .ws-media > img:not(.ws-logo) { order: 3; display: block; width: 100%; height: auto; border-radius: 0 !important; transform: none !important;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px); mask-image: linear-gradient(to bottom, transparent 0, #000 56px); }
   .ws-cta { margin-top: 0 !important; }
-  .ws-title { margin: 0 !important; font-family: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif !important; font-weight: 800 !important; font-size: 22px !important; line-height: 1.14 !important; letter-spacing: -.02em !important; color: var(--ws-ink) !important; }
+  .ws-title { margin: 0 !important; font-family: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif !important; font-weight: 800 !important; font-size: 22px !important; line-height: 1.14 !important; letter-spacing: 0 !important; color: var(--ws-ink) !important; }
   .ws-cta { width: auto !important; align-self: flex-start; height: 44px; box-sizing: border-box; padding: 6px 18px 6px 20px !important; border-radius: 2px 22px 22px 22px !important; font-size: 12px !important; color: var(--ws-ink) !important; } /* 12px: same as the featured cards' button text */
   #entertainment-space .ws-cta, #thryft .ws-cta { border-color: rgba(255,255,255,.35) !important; }
   #entertainment-space .ws-cta img, #thryft .ws-cta img { filter: invert(1); }
@@ -1020,3 +1050,107 @@ html[data-page="apple-music.html"] { --label-color: #e8344a; }             /* Ap
 html[data-page="thryft.html"] { --label-color: #1fbf62; }                  /* Thryft green (dark page) */
 /* brand color on phones only; desktop keeps the plain black labels (light on the dark pages) */
 @media screen and (max-width: 767px) { .link-block-7.context-tag .text-block-8 { color: var(--label-color) !important; } }
+
+/* Hero subtext: weight 300 resolved to the ultra-light (200) Avenir Next cut, which Chrome renders very thin.
+   Use the Avenir Book face the body copy uses. */
+.hero-subtext { font-family: "Avenirltstd Book", "Avenir Next", Avenir, "Helvetica Neue", sans-serif !important; font-weight: 400 !important; }
+
+/* Home section labels (featured work, bonus work, other, top): the site's "Avenir Next" font only ships the Thin cut,
+   so these rendered very light (most visibly in Chrome). Use the regular Avenir Roman face instead. */
+.section-label { font-family: "Avenirltstd Roman", Avenir, "Helvetica Neue", sans-serif !important; font-weight: 400 !important; }
+/* Hero eyebrow ("Product designer"): one step heavier than the Book face it shares with PAST / PRESENT / FUTURE */
+.hero-eyebrow { font-family: Avenirltstd, Avenir, "Helvetica Neue", sans-serif !important; font-weight: 500 !important; }
+
+/* Wellness card button: the default #cdd0d6 stroke washes out on the peach cover, so it gets a warm taupe that reads there (hover stays teal) */
+a.link-block-8[href="wellness-picture.html"] { border-color: #a99f94; }
+#sondermind-rcm .link-block-8 { border-color: #92a89b; } /* sage stroke on the mint card, same depth as the Wellness one */
+
+/* Wellness card (#sondermind) headline: a deep forest pine green that holds up on the peach cover (claims card keeps the teal) */
+#sondermind .h1.ttf.sondermind { background-image: linear-gradient(#087453, #087453); } /* solid green (no gradient) */
+#sondermind-rcm .h1.ttf.sondermind { background-image: linear-gradient(#006b58, #006b58); } /* Claims card headline: solid deep teal-green */
+
+/* ===========================================================================
+   Type system (Portfolio Type Sheet v2): every text style on the site maps to one of twelve styles.
+   Display = Schibsted Grotesk, Text = Avenir LT Std, Utility = IBM Plex Mono. Product mockups keep their own type.
+   Kept as they are on purpose: the margin labels, the light name in the header, the numbered mono section labels,
+   and each project's color in its headlines. Dark pages (.theme-dark) keep their light text colors.
+   =========================================================================== */
+@font-face { font-family: "Avenir LT Std"; src: url("../fonts/6590720ce7844e205dd81e70_AvenirLTStd-Light.otf") format("opentype"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "Avenir LT Std"; src: url("../fonts/6590720cba48a05dfddbc742_AvenirLTStd-Book.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Avenir LT Std"; src: url("../fonts/6590720cb047557f611bbf2d_AvenirLTStd-Medium.otf") format("opentype"); font-weight: 500 600; font-display: swap; }
+@font-face { font-family: "Avenir LT Std"; src: url("../fonts/6590720cb807603c1cf5acdb_AvenirLTStd-Heavy.otf") format("opentype"); font-weight: 700 800; font-display: swap; }
+@font-face { font-family: "Avenir LT Std"; src: url("../fonts/6590720c7872103d0a259daf_AvenirLTStd-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
+:root {
+  --font-display: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+  --font-text: "Avenir LT Std", "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --ink: #1a1b1f; --slate: #3b4052; --muted: rgba(13,12,14,.62);
+  --t-xl: 72px; --t-l: 36px; --t-m: 34px; --t-stat: 72px; --t-h: 21px; --t-lead: 21px; --t-body: 18px;
+}
+@media screen and (max-width: 767px) {
+  :root { --t-xl: 36px; --t-l: 30px; --t-m: 24px; --t-stat: 56px; --t-h: 20px; --t-lead: 19px; --t-body: 17px; }
+}
+
+/* Display XL: page titles */
+h1.h2.title { font-family: var(--font-display) !important; font-weight: 800 !important; font-size: var(--t-xl) !important; line-height: 1.1 !important; letter-spacing: -.02em !important; text-wrap: balance; }
+/* Display L: section headlines (and the phrase-style results), footer headline, password page title */
+h3.h2:not(.sub-head), h3.h2:not(.sub-head) strong, .footer h1.heading-2, h1.heading-2, .pw-wrap h1,
+h2.h2.purple:not(.extra-large), h2.h2.purple:not(.extra-large) strong, h2.h2.pink:not(.extra-large), h2.h2.pink:not(.extra-large) strong {
+  font-family: var(--font-display) !important; font-weight: 800 !important; font-size: var(--t-l) !important; line-height: 1.12 !important; letter-spacing: -.01em !important; text-wrap: balance; }
+/* Display M: featured card titles */
+.freelance-content .frame-10 h1.h1.ttf, .freelance-content .frame-10 h1.h1.mtv { font-weight: 800 !important; font-size: var(--t-m) !important; line-height: 1.2 !important; letter-spacing: -.01em !important; }
+/* Stat: headline numbers */
+strong.bold-text-5, h2.heading, h2.h2.extra-large, h2.h2.extra-large strong {
+  font-family: var(--font-display) !important; font-weight: 900 !important; font-size: var(--t-stat) !important; line-height: 1 !important; letter-spacing: -.03em !important; }
+/* Heading: subsections, tile titles, pull quotes */
+.paragraph-block h3:not(.h2), .paragraph-block h3:not(.h2) strong, .div-block-24 h3:not(.h2), h3.ws-title, h3.h2.sub-head, h3.h2.sub-head strong, strong.bold-text-14, strong.bold-text-15, strong.bold-text-17,
+p.p1.quotes, p.p1.bold-list, strong.pink.center, p.paragraph, h5.h2.small, h5.h2.small strong, strong.bold-text-7 {
+  font-family: var(--font-text) !important; font-weight: 800 !important; font-size: var(--t-h) !important; line-height: 1.38 !important; letter-spacing: 0 !important; text-wrap: balance; }
+/* Lead: hero subtext */
+p.hero-subtext { font-family: var(--font-text) !important; font-weight: 400 !important; font-size: var(--t-lead) !important; line-height: 1.55 !important; letter-spacing: .01em !important; text-wrap: pretty; }
+/* Body: case-study paragraphs; inline bold becomes Heavy */
+p.p1:not(.quotes):not(.bold-list):not(.dog), .paragraph-block li, .div-block-24 li {
+  font-family: var(--font-text) !important; font-weight: 400 !important; font-size: var(--t-body) !important; line-height: 1.55 !important; letter-spacing: .01em !important; text-wrap: pretty; }
+p.p1:not(.quotes):not(.bold-list) strong, p.p1:not(.quotes):not(.bold-list) b { font-family: var(--font-text) !important; font-weight: 800 !important; font-size: inherit !important; letter-spacing: inherit !important; line-height: inherit !important; }
+/* Body S: facts column, captions, card tag lines, footer project names, notes */
+p.p2, figcaption, p.apple-note, p.p1.dog, .text-block-6, .text-block-7, p.ct-line, span.fb-name, .pw-wrap p {
+  font-family: var(--font-text) !important; font-weight: 400 !important; font-size: 16px !important; line-height: 1.6 !important; letter-spacing: .01em !important; }
+/* Meta: years, small captions under screens, fine print */
+span.card-year, span.fb-year, .footer-text.copy-wrigth, h6.h2.center.small, h6.h2.extra-small, strong.bold-text-9, a.pw-back {
+  font-family: var(--font-text) !important; font-weight: 400 !important; font-size: 13px !important; line-height: 1.4 !important; letter-spacing: .06em !important; text-transform: none !important; }
+/* Button: every call to action */
+span.ws-cta, .text-block-9, .text-block-11, .text-4, .wp-cta-label {
+  font-family: var(--font-text) !important; font-weight: 500 !important; font-size: 12px !important; line-height: 1 !important; letter-spacing: .09em !important; text-transform: uppercase !important; }
+/* Label: eyebrows, field names */
+h5.h4, div.fb-label, .text-3, h1.footer-header, span.wp-tag, .pw-wrap label {
+  font-family: var(--font-text) !important; font-weight: 500 !important; font-size: 11px !important; line-height: 1.4 !important; letter-spacing: .09em !important; text-transform: uppercase !important; }
+
+/* color: slate for running text, muted for labels and meta (light pages only; brand-colored text keeps its color) */
+html:not(:has(body.theme-dark)) :is(p.p1:not(.pink):not(.quotes), p.p2, .paragraph-block li, p.hero-subtext, figcaption) { color: var(--slate) !important; }
+html:not(:has(body.theme-dark)) :is(h5.h4, div.fb-label, .text-3, span.card-year:not(.on-dark), span.fb-year, .footer-text.copy-wrigth, h6.h2.center.small, h6.h2.extra-small, strong.bold-text-9) { color: var(--muted) !important; }
+
+/* H3 headings (Heading style) one step heavier: Avenir Black */
+h3.h2.sub-head, h3.h2.sub-head > strong, h3.ws-title { font-weight: 900 !important; }
+
+/* Homepage project buttons: more top/bottom padding (38px -> 44px tall; 44 -> 50px on phones) */
+.ws-cta { padding-top: 14px !important; padding-bottom: 14px !important; border-radius: 23px 2px 23px 23px; }
+@media screen and (max-width: 767px) {
+  .ws-cta { height: 50px !important; padding-top: 6px !important; padding-bottom: 6px !important; border-radius: 2px 25px 25px 25px !important; }
+}
+
+/* Tighter space between consecutive paragraphs (line height unchanged) */
+.div-block-22 > p.p1 + p.p1 { margin-top: -4px !important; }
+
+/* Headline-card "View case study" buttons: same height as the project-card buttons (44px; 50px on phones) */
+.freelance-content .link-block-8, .freelance-content .link-block-9 { padding-top: 13px !important; padding-bottom: 13px !important; }
+@media screen and (max-width: 767px) {
+  .freelance-content .link-block-8, .freelance-content .link-block-9 { padding-top: 14px !important; padding-bottom: 14px !important; border-radius: 2px 25px 25px 25px; }
+}
+.freelance-content .link-block-8, .freelance-content .link-block-9 { min-height: 44px; box-sizing: border-box; }
+@media screen and (max-width: 767px) { .freelance-content .link-block-8, .freelance-content .link-block-9 { min-height: 50px; } }
+/* Bonus-work buttons: the all-caps label sat ~1.5px high; nudge it down so it is optically centered */
+.ws-cta { padding-top: 14.75px !important; padding-bottom: 13.25px !important; }
+@media screen and (max-width: 767px) { .ws-cta { padding-top: 7.5px !important; padding-bottom: 6px !important; } }
+/* Claims card button: its label (with the sparkle) sat ~1.7px high; nudge it down to center it */
+#sondermind-rcm .link-block-8, a.link-block-8[href="claims-service-case-study.html"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 13.85px !important; padding-bottom: 12.15px !important; }
+@media screen and (max-width: 767px) { #sondermind-rcm .link-block-8, a.link-block-8[href="claims-service-case-study.html"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 14.85px !important; padding-bottom: 13.15px !important; } }
