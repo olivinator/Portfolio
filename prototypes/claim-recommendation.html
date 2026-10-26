@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head><script>/* embedded in the case study: focus and scrollIntoView must not scroll the parent page */if(window.top!==window){(function(){var f=HTMLElement.prototype.focus;HTMLElement.prototype.focus=function(o){return f.call(this,Object.assign({},o||{},{preventScroll:true}))};var s=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){var r=this.getBoundingClientRect();var c=this.closest&&this.closest("[data-radix-scroll-area-viewport],.overflow-auto,.overflow-y-auto");if(c){var cr=c.getBoundingClientRect();if(r.top<cr.top)c.scrollTop-=cr.top-r.top;else if(r.bottom>cr.bottom)c.scrollTop+=r.bottom-cr.bottom}}})()}</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim tab — recommendation popout exploration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0..1,0" rel="stylesheet">
+<style>
+:root {
+  --main-brand-1: #004455;
+  --neutral-white: #FFFFFF;
+  --neutral-cream: #FFFEFD;
+  --neutral-05: #F2F2F2;
+  --neutral-15: #D8D8D8;
+  --neutral-30: #B2B2B2;
+  --neutral-40: #90969A;
+  --neutral-60: #5E666B;
+  --neutral-80: #2F3A40;
+  --neutral-default: #001219;
+  --decorative-sand-elevation-0: #F3EEE9;
+  --decorative-turquoise-03: #F2FAFC;
+  --decorative-turquoise-05: #E5F0F1;
+  --decorative-turquoise-10: #D7E9EB;
+  --decorative-turquoise-20: #BAD6DE;
+  --decorative-turquoise-80: #007A85;
+  --decorative-turquoise-100: #005D66;
+  --ufd-indigo-15: #DFE1EF;
+  --ufd-indigo-50: #6069A8;
+  --message-error: #B93646;
+  --font-inclusive-sans: 'Inclusive Sans', Arial, Helvetica, sans-serif;
+  --iris-body: 400 1rem/1.5 var(--font-inclusive-sans);
+  --iris-body-strong: 600 1rem/1.5 var(--font-inclusive-sans);
+  --iris-body-sm: 400 0.875rem/1.5 var(--font-inclusive-sans);
+  --iris-caption: 400 0.75rem/1.5 var(--font-inclusive-sans);
+  --spacing-100: 4px; --spacing-200: 8px; --spacing-300: 12px; --spacing-400: 16px;
+  --spacing-500: 20px; --spacing-600: 24px; --spacing-1000: 40px; --spacing-1050: 44px;
+  --spacing-1200: 56px;
+  --rounded-md: 8px; --rounded-full: 9999px;
+  --dropshadow-03: 0px 4px 6px -1px rgba(0,0,0,0.10), 0px 2px 4px -2px rgba(0,0,0,0.10);
+  --dropshadow-04: 0px 10px 15px -3px rgba(0,0,0,0.10), 0px 4px 6px -4px rgba(0,0,0,0.10);
+  --stroke-01: 1px solid #D8D8D8;
+  --duration-fast: 80ms; --duration-base: 160ms;
+  --easing-default: cubic-bezier(0.2, 0, 0, 1);
+  --iris-focus-ring: #009ea8;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; font: var(--iris-body); color: var(--neutral-default);
+  background: var(--decorative-sand-elevation-0);
+}
+:focus-visible { outline: 2px solid var(--iris-focus-ring); outline-offset: 0; }
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal;
+  font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none;
+  display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr;
+  vertical-align: middle;
+  font-variation-settings: 'opsz' 24, 'wght' 300, 'FILL' 0, 'GRAD' 0;
+}
+.material-symbols-rounded.filled { font-variation-settings: 'opsz' 24, 'wght' 300, 'FILL' 1, 'GRAD' 0; }
+.page__inner { padding: var(--spacing-600) var(--spacing-600) 120px; max-width: 720px; margin: 0 auto; }
+.note-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--spacing-400);
+}
+.note-head__title { font: 700 1.375rem/1.4 var(--font-inclusive-sans); color: var(--neutral-default); margin: 0; }
+.note-head__menu {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: var(--rounded-full);
+  background: none; border: 0; color: var(--neutral-60); cursor: pointer;
+}
+.note-head__menu:hover { background: var(--neutral-05); }
+.tabs {
+  display: flex; gap: var(--spacing-100);
+  border-bottom: 1px solid var(--neutral-15);
+  margin-bottom: var(--spacing-600);
+  overflow-x: auto;
+}
+.tab {
+  display: inline-flex; align-items: center; gap: var(--spacing-200);
+  height: var(--spacing-1100, 48px); padding: 0 var(--spacing-400);
+  background: none; border: 0; border-bottom: 3px solid transparent;
+  font: var(--iris-body); color: var(--neutral-60); cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--easing-default);
+}
+.tab:hover { color: var(--neutral-default); }
+.tab[aria-selected="true"] {
+  color: var(--decorative-turquoise-100); font-weight: 600;
+  border-bottom-color: var(--decorative-turquoise-100);
+}
+.tab[aria-selected="true"] .material-symbols-rounded { font-variation-settings: 'opsz' 24, 'wght' 300, 'FILL' 1, 'GRAD' 0; }
+.tab .material-symbols-rounded { font-size: 20px; }
+.field { position: relative; margin-bottom: 0; }
+.field + .field { margin-top: var(--spacing-500); }
+.field__label-row {
+  display: flex; align-items: center; gap: var(--spacing-200);
+  margin-bottom: var(--spacing-100);
+}
+.field__label {
+  font-size: 13px; font-weight: 500; line-height: 19px;
+  font-family: var(--font-inclusive-sans); color: var(--neutral-80);
+}
+.req { color: var(--message-error); font-weight: 700; }
+.select-wrap { position: relative; }
+.select {
+  width: 100%; appearance: none; font-family: var(--font-inclusive-sans);
+  font-size: 15px; line-height: 23px; color: var(--neutral-default);
+  background: var(--neutral-cream); border: 1px solid var(--neutral-30);
+  border-radius: var(--rounded-md); padding: var(--spacing-300) var(--spacing-1000) var(--spacing-300) var(--spacing-400);
+  min-height: 47px;
+}
+.select-wrap > .material-symbols-rounded {
+  position: absolute; right: var(--spacing-300); top: 50%;
+  transform: translateY(-50%); pointer-events: none; color: var(--neutral-60);
+}
+.dx-list { display: flex; flex-direction: column; gap: var(--spacing-200); margin-bottom: var(--spacing-200); }
+.dx-chip {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-300);
+  background: var(--neutral-cream); border: 1px solid var(--neutral-30);
+  border-radius: var(--rounded-md); padding: var(--spacing-300) var(--spacing-400);
+  font-family: var(--font-inclusive-sans); font-size: 15px; line-height: 23px;
+  color: var(--neutral-default);
+}
+.dx-chip__remove {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 24px; height: 24px; margin-top: -2px; border: 0; padding: 0;
+  background: none; color: var(--neutral-60); cursor: pointer; border-radius: var(--rounded-full);
+  transition: background var(--duration-fast) var(--easing-default),
+              color var(--duration-fast) var(--easing-default);
+}
+.dx-chip__remove:hover { background: var(--decorative-turquoise-10); color: var(--main-brand-1); }
+.dx-chip__remove:active { background: var(--decorative-turquoise-20); }
+.dx-chip__remove .material-symbols-rounded { font-size: 20px; }
+.popout {
+  position: relative; margin-top: var(--spacing-100);
+  background: var(--decorative-turquoise-03);
+  border: 1px solid var(--decorative-turquoise-20);
+  border-radius: var(--rounded-md);
+  padding: var(--spacing-300) var(--spacing-200) var(--spacing-300) var(--spacing-400);
+  display: grid; grid-template-rows: 1fr;
+  transition: opacity var(--duration-base) var(--easing-default),
+              grid-template-rows var(--duration-base) var(--easing-default),
+              margin-top var(--duration-base) var(--easing-default),
+              padding-top var(--duration-base) var(--easing-default),
+              padding-bottom var(--duration-base) var(--easing-default),
+              border-top-width var(--duration-base) var(--easing-default),
+              border-bottom-width var(--duration-base) var(--easing-default);
+}
+.popout[data-dismissed] {
+  opacity: 0; grid-template-rows: 0fr; margin-top: 0;
+  padding-top: 0; padding-bottom: 0;
+  border-top-width: 0; border-bottom-width: 0;
+}
+.popout__collapse {
+  min-height: 0; display: flex; align-items: center; gap: var(--spacing-200);
+}
+.popout[data-dismissed] .popout__collapse { overflow: hidden; }
+.popout__info { flex: 1 0 0; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.popout__eyebrow { display: flex; align-items: center; gap: 0; }
+.popout__eyebrow-text {
+  font: var(--iris-caption); font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--decorative-turquoise-100);
+}
+.popout__text {
+  font-family: var(--font-inclusive-sans); font-size: 15px; line-height: 23px;
+  font-weight: 700; color: var(--neutral-default);
+  margin: 0;
+}
+.popout__actions { display: flex; align-items: center; gap: var(--spacing-200); flex-shrink: 0; }
+.popout__apply {
+  display: inline-flex; align-items: center; gap: var(--spacing-50, 2px);
+  background: var(--decorative-turquoise-10); color: var(--main-brand-1);
+  border: 0; border-radius: var(--rounded-full); cursor: pointer;
+  padding: 6px 16px 6px 8px;
+  font: var(--iris-caption); font-weight: 500;
+  transition: background var(--duration-fast) var(--easing-default);
+}
+.popout__apply:hover { background: var(--decorative-turquoise-20); }
+.popout__apply:active { background: color-mix(in srgb, var(--decorative-turquoise-20), var(--decorative-turquoise-100)); color: var(--neutral-white); }
+.popout__apply .material-symbols-rounded { font-size: 20px; transform: rotate(-90deg); }
+.popout__close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: transparent; color: var(--neutral-80);
+  border: 0; border-radius: var(--rounded-full); cursor: pointer; padding: 6px;
+  transition: background var(--duration-fast) var(--easing-default);
+}
+.popout__close:hover { background: var(--decorative-turquoise-10); color: var(--main-brand-1); }
+.popout__close:active { background: var(--decorative-turquoise-20); }
+.popout__close .material-symbols-rounded { font-size: 20px; }
+.info-trigger { position: relative; display: inline-flex; }
+.info-trigger__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border: 0; padding: 0; background: none;
+  border-radius: var(--rounded-full); cursor: help; color: var(--neutral-40);
+  transition: background var(--duration-fast) var(--easing-default),
+              color var(--duration-fast) var(--easing-default);
+}
+.info-trigger__btn:hover, .info-trigger__btn:focus-visible {
+  color: var(--decorative-turquoise-100); background: var(--decorative-turquoise-10);
+}
+.info-trigger__btn:active { color: var(--main-brand-1); background: var(--decorative-turquoise-20); }
+.info-trigger__btn .material-symbols-rounded { font-size: 16px; }
+.callout {
+  position: absolute; z-index: 30; text-transform: none; letter-spacing: normal;
+  width: 220px; background: var(--neutral-default); color: var(--neutral-white);
+  border-radius: var(--rounded-md); box-shadow: var(--dropshadow-03);
+  padding: var(--spacing-200) var(--spacing-300);
+  bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(2px);
+  opacity: 0; visibility: hidden;
+  transition: opacity var(--duration-base) var(--easing-default),
+              transform var(--duration-base) var(--easing-default),
+              visibility var(--duration-base);
+}
+.info-trigger__btn:hover ~ .callout,
+.info-trigger__btn:focus-visible ~ .callout {
+  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+}
+.callout__text { font: var(--iris-caption); font-weight: 400; color: var(--neutral-white); margin: 0; }
+.callout::after {
+  content: ''; position: absolute; width: 0; height: 0;
+  top: 100%; left: 50%; transform: translateX(-50%);
+  border: 8px solid transparent; border-top-color: var(--neutral-default);
+}
+.floating-cta {
+  position: fixed; right: var(--spacing-600); bottom: var(--spacing-600);
+  z-index: 500; display: inline-flex; align-items: center; gap: var(--spacing-200);
+  height: var(--spacing-1200); padding: 0 var(--spacing-600);
+  border: 0; border-radius: var(--rounded-full); box-shadow: var(--dropshadow-04);
+  background: var(--decorative-turquoise-100); color: var(--neutral-white);
+  font: 500 1rem/1.5 var(--font-inclusive-sans); cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-default);
+}
+.floating-cta:hover:not(:disabled) { background: var(--decorative-turquoise-80); }
+.floating-cta:active:not(:disabled) { background: var(--main-brand-1); }
+.floating-cta:disabled { background: var(--neutral-15); color: var(--neutral-60); cursor: not-allowed; box-shadow: none; }
+</style>
+<style id="portal-shell">
+/* Provider portal frame around the claim tab: nav and session details are context only (not interactive) */
+.ps-shell{display:flex;min-height:100vh}
+.ps-nav{flex:none;width:248px;background:#F3EEE9;border-right:1px solid #E7DBD0;padding:18px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;height:100vh}
+.ps-brand{display:flex;align-items:center;gap:8px;font:600 15px/1 'Inclusive Sans',Arial,sans-serif;color:#004455;padding:0 6px}
+.ps-logo{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#007A84,#004455)}
+.ps-collapse{margin-left:auto;border:1px solid #D8D8D8;background:#FFFEFD;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#2F3A40}
+.ps-collapse .material-symbols-rounded{font-size:18px}
+.ps-search{display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border:1px solid #D8D8D8;border-radius:10px;background:#FFFEFD;color:#5E666B;font:400 14px/1 'Inclusive Sans',Arial,sans-serif}
+.ps-search .material-symbols-rounded{font-size:20px}
+.ps-nav nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.ps-item,.ps-sub{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:999px;color:#001219;font:400 15px/1 'Inclusive Sans',Arial,sans-serif;cursor:default}
+.ps-item .material-symbols-rounded,.ps-sub .material-symbols-rounded{font-size:21px;color:#2F3A40}
+.ps-sub{padding-left:22px}
+.ps-sub.is-active{background:#004455;color:#fff}.ps-sub.is-active .material-symbols-rounded{color:#fff}
+.ps-chev{margin-left:auto;display:flex}.ps-chev .material-symbols-rounded{font-size:20px}
+.ps-gap{flex:1;min-height:20px}
+.ps-avatar{width:22px;height:22px;border-radius:50%;background:#D7E9EB}
+.ps-main{flex:1;min-width:0}
+.ps-main .page__inner{max-width:760px;margin:0;padding-left:36px;padding-top:6px}
+.ps-crumbs{display:flex;gap:8px;padding:22px 36px 0;font:400 13px/1.4 'Inclusive Sans',Arial,sans-serif;color:#5E666B}
+.ps-crumbs .cur{color:#001219}
+.ps-saved{margin:-6px 0 18px;font:600 13px/1.4 'Inclusive Sans',Arial,sans-serif;color:#2F3A40}
+.ps-session{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 18px;margin-bottom:28px}
+.ps-session label{display:block;margin-bottom:6px;font:500 13px/19px 'Inclusive Sans',Arial,sans-serif;color:#2F3A40}
+.ps-session .req{color:#B93646;font-weight:700}
+.ps-in{display:flex;align-items:center;justify-content:space-between;height:44px;padding:0 12px 0 14px;border:1px solid #B2B2B2;border-radius:8px;background:#FFFEFD;font:400 15px/1 'Inclusive Sans',Arial,sans-serif;color:#001219}
+.ps-in .material-symbols-rounded{font-size:20px;color:#5E666B}
+.ps-wide{grid-column:span 2}
+.ps-radios{display:flex;gap:10px}
+.ps-radio{white-space:nowrap;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border:1px solid #B2B2B2;border-radius:999px;font:400 14px/1 'Inclusive Sans',Arial,sans-serif;background:#FFFEFD}
+.ps-radio i{width:16px;height:16px;border-radius:50%;border:1.5px solid #5E666B;box-sizing:border-box}
+.ps-radio.on{border-color:#007A84;background:#F2FAFC}.ps-radio.on i{border:5px solid #007A84}
+/* readers stay on the Claim tab */
+.tabs .tab[aria-selected="false"]{pointer-events:none;cursor:default}
+@media(max-width:900px){.ps-nav{display:none}.ps-crumbs,.ps-main .page__inner{padding-left:20px}.ps-session{grid-template-columns:1fr 1fr}.ps-wide{grid-column:span 2}}
+</style></head>
+<body>
+<div class="ps-shell"><aside class="ps-nav" aria-label="Provider portal navigation"><div class="ps-brand"><span class="ps-logo" aria-hidden="true"></span><span>sondermind</span><button class="ps-collapse" type="button" tabindex="-1" aria-hidden="true"><span class="material-symbols-rounded" aria-hidden="true">dock_to_right</span></button></div><div class="ps-search"><span class="material-symbols-rounded" aria-hidden="true">search</span><span>Search clients</span></div><nav><a class="ps-item"><span class="material-symbols-rounded" aria-hidden="true">home</span>Home</a><a class="ps-item"><span class="material-symbols-rounded" aria-hidden="true">calendar_month</span>Scheduling<span class="ps-chev"><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></span></a><a class="ps-item is-open"><span class="material-symbols-rounded" aria-hidden="true">group</span>Clients<span class="ps-chev"><span class="material-symbols-rounded" aria-hidden="true">expand_less</span></span></a><a class="ps-sub is-active"><span class="material-symbols-rounded" aria-hidden="true">person</span>Active Clients</a><a class="ps-sub"><span class="material-symbols-rounded" aria-hidden="true">favorite</span>Referrals</a><a class="ps-item"><span class="material-symbols-rounded" aria-hidden="true">payments</span>Payouts<span class="ps-chev"><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></span></a><a class="ps-item"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>Resources<span class="ps-chev"><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></span></a><span class="ps-gap"></span><a class="ps-item"><span class="material-symbols-rounded" aria-hidden="true">chat</span>Messages</a><a class="ps-item"><span class="ps-avatar" aria-hidden="true"></span>Your Account<span class="ps-chev"><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></span></a></nav></aside><main class="ps-main"><nav class="ps-crumbs" aria-label="Breadcrumb"><span>Active Clients</span><span>/</span><span>Dan Test</span><span>/</span><span class="cur">Progress note</span></nav><div class="page__inner">
+  <div class="note-head">
+    <h1 class="note-head__title">Dan Test's Progress note</h1>
+    <button class="note-head__menu" type="button" aria-label="More options">
+      <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+    </button>
+  </div>
+  <p class="ps-saved">Last saved on 8/12/2026 at 11:08 AM</p><div class="ps-session" aria-label="Session details (read-only in this prototype)"><div><label>Session date<span class="req">*</span></label><div class="ps-in">8/12/2026<span class="material-symbols-rounded" aria-hidden="true">calendar_today</span></div></div><div><label>Start time<span class="req">*</span></label><div class="ps-in">10:00 AM<span class="material-symbols-rounded" aria-hidden="true">schedule</span></div></div><div><label>End time<span class="req">*</span></label><div class="ps-in">10:45 AM<span class="material-symbols-rounded" aria-hidden="true">schedule</span></div></div><div class="ps-wide"><label>Practice location<span class="req">*</span></label><div class="ps-in">Therapy, LLC (default)<span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span></div></div><div class="ps-wide2"><label>Session type<span class="req">*</span></label><div class="ps-radios"><span class="ps-radio on"><i></i>Video</span><span class="ps-radio"><i></i>In-person</span></div></div></div><div class="tabs" role="tablist">
+    <button class="tab" type="button" role="tab" aria-selected="false">
+      <span class="material-symbols-rounded" aria-hidden="true">edit_note</span> Note
+    </button>
+    <button class="tab" type="button" role="tab" aria-selected="true">
+      <span class="material-symbols-rounded" aria-hidden="true">paid</span> Claim
+    </button>
+    <button class="tab" type="button" role="tab" aria-selected="false">
+      <span class="material-symbols-rounded" aria-hidden="true">route</span> Treatment plan
+    </button>
+  </div>
+  <div class="field">
+    <div class="field__label-row">
+      <label class="field__label" for="insurance-select">Insurance<span class="req" aria-hidden="true">*</span></label>
+    </div>
+    <div class="select-wrap">
+      <select class="select" id="insurance-select">
+        <option value="" selected>Search or select</option>
+        <option value="aetna">Aetna</option>
+        <option value="cigna">Cigna</option>
+      </select>
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field__label-row">
+      <label class="field__label" for="cpt-select">CPT code(s)<span class="req" aria-hidden="true">*</span></label>
+    </div>
+    <div class="select-wrap">
+      <select class="select" id="cpt-select">
+        <option value="" selected>Search or select</option>
+        <option value="90834">90834 · Psychotherapy, 45 minutes</option>
+      </select>
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+    </div>
+    <div class="popout" id="cpt-popout">
+      <div class="popout__collapse">
+        <div class="popout__info">
+          <div class="popout__eyebrow">
+            <span class="popout__eyebrow-text">Recommended</span>
+            <span class="info-trigger">
+              <button class="info-trigger__btn" type="button" aria-label="How we got this recommendation">
+                <span class="material-symbols-rounded filled" aria-hidden="true">info</span>
+              </button>
+              <span class="callout" role="tooltip">
+                <span class="callout__text">Recommendations are generated from your session transcript.</span>
+              </span>
+            </span>
+          </div>
+          <p class="popout__text">90834 – Psychotherapy, 45 minutes</p>
+        </div>
+        <div class="popout__actions">
+          <button class="popout__apply" type="button" id="cpt-apply">
+            <span class="material-symbols-rounded" aria-hidden="true">north_east</span>
+            Apply
+          </button>
+          <button class="popout__close" type="button" id="cpt-ignore" aria-label="Ignore">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field__label-row">
+      <label class="field__label" for="dx-primary-select">Primary diagnosis code<span class="req" aria-hidden="true">*</span></label>
+    </div>
+    <div class="select-wrap">
+      <select class="select" id="dx-primary-select">
+        <option value="" selected>Search or select</option>
+        <option value="F41.1">F41.1 · Generalized anxiety disorder</option>
+      </select>
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+    </div>
+    <div class="popout" id="dx-primary-popout">
+      <div class="popout__collapse">
+        <div class="popout__info">
+          <div class="popout__eyebrow">
+            <span class="popout__eyebrow-text">Recommended</span>
+            <span class="info-trigger">
+              <button class="info-trigger__btn" type="button" aria-label="How we got this recommendation">
+                <span class="material-symbols-rounded filled" aria-hidden="true">info</span>
+              </button>
+              <span class="callout" role="tooltip">
+                <span class="callout__text">Recommendations are generated from your session transcript.</span>
+              </span>
+            </span>
+          </div>
+          <p class="popout__text">F41.1 – Generalized anxiety disorder</p>
+        </div>
+        <div class="popout__actions">
+          <button class="popout__apply" type="button" id="dx-primary-apply">
+            <span class="material-symbols-rounded" aria-hidden="true">north_east</span>
+            Apply
+          </button>
+          <button class="popout__close" type="button" id="dx-primary-ignore" aria-label="Ignore">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field__label-row">
+      <label class="field__label" for="dx-secondary-add">Secondary diagnosis code(s)</label>
+    </div>
+    <div class="dx-list" id="dx-secondary-list">
+      <div class="dx-chip">
+        <span>F01.518 – Major neurocognitive disorder due to probable vascular disease, Unspecified severity, With other behavioral or psychological disturbance</span>
+        <button class="dx-chip__remove" type="button" aria-label="Remove this diagnosis code">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </div>
+      <div class="dx-chip">
+        <span>F01.52 – Major neurocognitive disorder due to probable vascular disease, Unspecified severity, With psychotic disturbance</span>
+        <button class="dx-chip__remove" type="button" aria-label="Remove this diagnosis code">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="select-wrap">
+      <select class="select" id="dx-secondary-add">
+        <option value="" selected>Search or select</option>
+        <option value="F41.1">F41.1 · Generalized anxiety disorder</option>
+      </select>
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+    </div>
+  </div>
+</div>
+</main></div><button class="floating-cta" id="review-note-btn" type="button" disabled>
+  <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+  Review note
+</button>
+<script>
+function wireRecommendation(selectId, popoutId, applyId, ignoreId, code) {
+  const select = document.getElementById(selectId);
+  const popout = document.getElementById(popoutId);
+  function resolvePopout() {
+    popout.setAttribute('data-dismissed', '');
+    function onTransitionEnd(e) {
+      if (e.target !== popout || e.propertyName !== 'opacity') return;
+      popout.hidden = true;
+      popout.removeEventListener('transitionend', onTransitionEnd);
+    }
+    popout.addEventListener('transitionend', onTransitionEnd);
+    select.focus();
+  }
+  document.getElementById(applyId).addEventListener('click', () => {
+    select.value = code;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    resolvePopout();
+  });
+  document.getElementById(ignoreId).addEventListener('click', resolvePopout);
+  if (select.value) popout.hidden = true;
+}
+wireRecommendation('cpt-select', 'cpt-popout', 'cpt-apply', 'cpt-ignore', '90834');
+wireRecommendation('dx-primary-select', 'dx-primary-popout', 'dx-primary-apply', 'dx-primary-ignore', 'F41.1');
+document.getElementById('dx-secondary-list').addEventListener('click', (e) => {
+  const removeBtn = e.target.closest('.dx-chip__remove');
+  if (!removeBtn) return;
+  removeBtn.closest('.dx-chip').remove();
+});
+const reviewBtn = document.getElementById('review-note-btn');
+const gatedSelects = ['insurance-select', 'cpt-select', 'dx-primary-select'].map(id => document.getElementById(id));
+function updateReviewGate() {
+  reviewBtn.disabled = gatedSelects.some(sel => !sel.value);
+}
+gatedSelects.forEach(sel => sel.addEventListener('change', updateReviewGate));
+updateReviewGate();
+</script>
+</body>
+</html>

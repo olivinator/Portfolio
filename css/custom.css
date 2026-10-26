@@ -1,0 +1,897 @@
+/*
+  custom.css — your edits and new animations go here.
+  Loaded after webflow.css on every page, so anything here wins.
+*/
+
+/* ---------------------------------------------------------------
+   Hero statement rotator ("Passionate about improving experiences" …)
+   The four statements sit on top of each other and crossfade: each one
+   is visible for 4s, fading over 0.6s while the next fades in.
+   The 5th line in the HTML repeats the 1st (left over from the old
+   sliding version), so it's hidden.
+   To add a statement: add a line in index.html, then raise the 16s
+   cycle by 4s and add a matching nth-child delay below.
+   --------------------------------------------------------------- */
+.mover {
+  display: grid;
+}
+.mover .header-statement-text {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: statement-fade 16s ease-in-out infinite;
+}
+.mover .header-statement-text:nth-child(1) { animation-delay: -0.6s; } /* starts visible */
+.mover .header-statement-text:nth-child(2) { animation-delay: 3.4s; }
+.mover .header-statement-text:nth-child(3) { animation-delay: 7.4s; }
+.mover .header-statement-text:nth-child(4) { animation-delay: 11.4s; }
+.mover .header-statement-text:nth-child(n+5) { display: none; }
+
+@keyframes statement-fade {
+  0%      { opacity: 0; }
+  3.75%   { opacity: 1; }  /* 0.6s fade in  */
+  25%     { opacity: 1; }  /* hold until the next one starts */
+  28.75%  { opacity: 0; }  /* 0.6s fade out, overlapping the next fade in */
+  100%    { opacity: 0; }
+}
+
+/* "Let's Talk" label in the Past / Present / Future row: keep it on one
+   line and let its container hug the text instead of wrapping. */
+.frame-1482 { flex: none; }
+.text-4 { white-space: nowrap; flex: none; width: auto; }
+.frame-1481.top.last { min-width: max-content; }
+
+/* Project card columns: never wider than the card images (1221px),
+   so the text overlay stays clear of the artwork. Centered. */
+.freelance-content,
+.full-time-content {
+  width: 100%;
+  max-width: 1221px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Reveal-on-scroll helper used by js/custom.js.
+   Add class="reveal" to any element to have it fade up into view. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .8s ease, transform .8s cubic-bezier(.2, .7, .2, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mover .header-statement-text { animation: none; }
+  .mover .header-statement-text:nth-child(1) { opacity: 1; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* SonderMind card: teal headline (same size/spacing as the TrueToForm
+   headline) and a mark + wordmark lockup in the card's logo slot. */
+.h1.ttf.sondermind {
+  background-image: linear-gradient(40deg, #0b6f73, #18908a 55%, #41b5a5);
+}
+.sm-logo-lockup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Avenirltstd, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #0d0c0e;
+}
+
+/* Page background: a softer take on the Thinking Machine prototype's
+   lighting. Light from above at top center, a cool near-white ground, and
+   a faint falloff into the corners. Fixed to the viewport so the light
+   stays put while the content scrolls over it. */
+.body {
+  background-color: #f3f4f7;
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% -10%, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0.4) 40%, rgb(255 255 255 / 0) 75%),
+    radial-gradient(ellipse 90% 85% at 50% 42%, rgb(214 216 224 / 0) 58%, rgb(204 207 217 / 0.35) 100%),
+    radial-gradient(ellipse 120% 95% at 50% 30%, #f8f8fa 0%, #f0f1f4 55%, #e3e4ea 100%);
+  background-attachment: fixed;
+}
+/* The content wrapper painted its own flat #f9f9fa over the page; let the
+   lit background show through it instead. */
+.frame-1475 { background-color: transparent; }
+/* Slider cards filled a square #f9f9fa box behind their rounded mask,
+   which shows as hard corners on the lit background. */
+.company-slider,
+.company-slider.outline { background-color: transparent; }
+
+/* SonderMind buttons: teal hover outline and pressed fill, like the
+   per-project colors on the other cards. */
+.link-block-8.sondermind:hover { border-color: #1d7a78; }
+.link-block-8.sondermind:active { background-color: #1d7a78; }
+
+/* Card group = "work" tag + cards + "top" tag, sized to the cards and
+   centered, so both tags hug the cards' edges. The "top" link now lives
+   inside this group (moved in index.html), still pinned to the bottom of
+   the window while the cards scroll. */
+.freelance-container {
+  width: 100%;
+  max-width: calc(1221px + 2 * 48px + 2 * 6px);
+  margin-left: auto;
+  margin-right: auto;
+}
+.freelance-container > .freelance-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+.freelance-container > .link-block-2 {
+  flex: none;
+  width: 48px;
+  align-self: flex-end;
+}
+@media screen and (max-width: 991px) {
+  .freelance-container > .link-block-2 { width: 40px; }
+}
+/* (The old right-hand padding that kept space for the former page-wide "top"
+   column is gone, so the hero, the logo row and the card groups are centered
+   on the page.) */
+
+/* Hero: "I'm Olivia, / I make sense of / complicated things" + subtext.
+   The box was a fixed 510px tall for two lines; let it grow with content. */
+.div-block-2 { height: auto; min-height: 510px; padding-bottom: 24px; }
+@media screen and (max-width: 991px) {
+  .div-block-2 { height: auto; min-height: 400px; align-items: flex-start; }
+}
+.hero-title-line-1 + .hero-title-line-1.middle { margin-top: 0; }
+.header-hero.a-product,
+.header-hero.designer { white-space: normal; }
+.hero-subtext {
+  max-width: 620px;
+  margin: 16px 0 0;
+  font-family: Avenirnext, "Avenir Next", Avenir, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  line-height: 1.55;
+  letter-spacing: .01em;
+  color: #3a3a42;
+}
+.hero-subtext-role { font-weight: 600; color: #0d0c0e; }
+@media screen and (max-width: 479px) {
+  .hero-subtext { font-size: 1.05rem; padding: 0 16px; margin-top: 20px; }
+}
+
+/* Single-image cards (Caimber): no grow-and-shadow on hover, so every
+   card behaves the same as the slider cards. */
+.image-container.solo:hover { transform: none; box-shadow: none; }
+
+/* Project card images: locked inside the card (the whole card shifts with
+   the cursor instead; see card-tilt in index.html), with a gentle zoom on
+   hover that eases in slowly (2.4s) and settles back a little quicker.
+   Mouse/trackpad only. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .image-container > .vectors-wrapper-3.outline {
+    transition: transform 1s cubic-bezier(.25, .1, .25, 1);
+  }
+  .image-container:hover > .vectors-wrapper-3.outline {
+    transform: scale(1.015);
+    transition: transform 2.4s cubic-bezier(.22, .61, .36, 1);
+  }
+}
+
+/* Logo links (Past / Present / Future row): the resting underline was
+   #f9f9fa to match the old flat page, so it showed as a white line on the
+   lit background. Hide it at rest; it still turns black on hover.
+   (Footer icons use .light and were already invisible at rest.) */
+.link-block:not(.light):not(:hover) { border-bottom-color: transparent; }
+
+/* Company-name tooltips on the Past / Present logos (text from data-tip).
+   Black pill above the icon with a centered pointer; shows on hover and
+   keyboard focus. */
+.link-block.has-tip { position: relative; }
+.link-block.has-tip::before,
+.link-block.has-tip::after {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.link-block.has-tip::after {
+  content: attr(data-tip);
+  bottom: calc(100% + 10px);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #0d0c0e;
+  color: #fff;
+  font-family: Avenirnext, "Avenir Next", Avenir, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.link-block.has-tip::before {
+  content: "";
+  bottom: calc(100% + 4px);
+  border: 6px solid transparent;
+  border-bottom: 0;
+  border-top-color: #0d0c0e;
+}
+.link-block.has-tip:hover::before,
+.link-block.has-tip:hover::after,
+.link-block.has-tip:focus-visible::before,
+.link-block.has-tip:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* "work" tag: when it sticks during scroll, stop ~8px below the site header
+   instead of sliding under it. The sticky element is the link (.link-block-3,
+   normally top: 47px, right under the 46px header); the visible tag is pulled
+   63px (55px on tablet) above it by the margin-top in index.html's work-tag
+   style, so the sticky offset adds that back: 47 + 63 + 8. */
+.div-block-4.freelance .link-block-3 { top: 118px; }
+@media screen and (max-width: 991px) {
+  .div-block-4.freelance .link-block-3 { top: 110px; }
+}
+
+/* ---------------------------------------------------------------
+   Featured + From the workshop
+   Featured: four full-width project cards (the column above).
+   From the workshop: smaller project tiles, two per row, with the
+   image on top and the headline, company and years underneath.
+   --------------------------------------------------------------- */
+/* The "top" link now lives in the workshop group; keep its column in the
+   featured group so both groups line up. */
+.ws-spacer { flex: none; width: 48px; }
+@media screen and (max-width: 991px) { .ws-spacer { width: 40px; } }
+@media screen and (max-width: 767px) { .ws-spacer { display: none; } }
+
+/* Same 48px gap as between the featured cards (the parent's row gap already
+   supplies it, so no extra margin). */
+.freelance-container.workshop { margin-top: 0; }
+
+/* Longer sticky label: give the rotated text room. */
+/* "bonus work": one line, with the end of the text (the top,
+   since it reads bottom-to-top) level with the first row of tiles (plus the
+   16px optical offset below). The rotated text overhangs its 28px layout box
+   by ~30px each way, so the arrow needs that much extra room to sit 24px
+   below the text. */
+.workshop .div-block-4 .section-label.tag-1 { width: max-content; white-space: nowrap; margin-top: 0; }
+.workshop .agenda-arrow.freelance { height: auto; grid-row-gap: 54px; }
+.workshop .div-block-4.freelance .link-block-3 { height: auto; }
+
+.freelance-content.ws-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 64px 32px;
+  align-items: start;
+}
+@media screen and (max-width: 767px) {
+  .freelance-content.ws-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+}
+
+.ws-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.ws-media {
+  aspect-ratio: 16 / 10;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f9f9fa;
+}
+/* The cover art sits on the right of each image (the left was blank space
+   for the old overlay headline), so crop toward the right. */
+.ws-media > img:not(.ws-logo) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 80% 50%;
+  transition: transform 1s cubic-bezier(.25, .1, .25, 1);
+}
+.ws-body { display: flex; flex-direction: column; gap: 10px; padding: 0 4px; }
+.ws-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #0d0c0eb3;
+  font-family: "Avenirltstd Book", Avenirltstd, sans-serif;
+  font-size: 12px;
+  letter-spacing: .06em;
+  line-height: 20px;
+}
+.ws-meta span:first-child { color: #0d0c0e; font-family: Avenirltstd, sans-serif; letter-spacing: .04em; font-size: 14px; }
+.ws-title {
+  margin: 0;
+  max-width: 34ch;
+  color: #1a1b1f;
+  font-family: Avenirltstd, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -.2px;
+  text-wrap: balance;
+}
+.ws-cta, .ws-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: Avenirltstd, sans-serif;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.ws-cta { color: #0d0c0e; font-weight: 600; }
+.ws-cta img { transition: transform .3s ease; }
+.ws-status { color: #0d0c0eb3; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ws-tile:hover .ws-media > img:not(.ws-logo) { transform: scale(1.015); transition-duration: 2.4s; transition-timing-function: cubic-bezier(.22, .61, .36, 1); }
+  a.ws-tile:hover .ws-cta img { transform: translateX(4px); }
+}
+a.ws-tile:focus-visible { outline: 2px solid #0d0c0e; outline-offset: 6px; border-radius: 22px; }
+
+/* Workshop tiles: company / product logo in the top left of the image,
+   like the featured cards (a touch smaller to suit the tile). */
+.ws-media { position: relative; }
+.ws-logo {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  z-index: 1;
+  height: auto;
+  max-width: 45%;
+  transform: scale(.85);
+  transform-origin: top left;
+  pointer-events: none;
+}
+@media screen and (max-width: 479px) { .ws-logo { top: 16px; left: 16px; } }
+
+/* Featured cards: the year sits to the right of the logo, split by a thin
+   rule (the title / company / dates row under each card was removed). */
+.div-block-9.has-year { display: flex; justify-content: flex-start; align-items: center; gap: 14px; }
+.card-year {
+  padding-left: 14px;
+  border-left: 1px solid rgb(13 12 14 / .2);
+  color: rgb(13 12 14 / .62);
+  font-family: Avenirltstd, sans-serif;
+  font-size: 13px;
+  letter-spacing: .06em;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.card-year.on-dark { color: rgb(255 255 255 / .72); border-left-color: rgb(255 255 255 / .28); }
+
+/* "featured work" tag: one line, with the end of the text (the top, since
+   it reads bottom-to-top) level with the top edge of the first card. */
+.freelance-container:not(.workshop) .section-label.tag-1 { width: max-content; white-space: nowrap; }
+.freelance-container:not(.workshop) .div-block-4.freelance .agenda-arrow.freelance { margin-top: -8px; }
+/* While it sticks, keep the text ~8px below the 46px header. */
+.freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { top: 66px; }
+@media screen and (max-width: 991px) {
+  .freelance-container:not(.workshop) .div-block-4.freelance .agenda-arrow.freelance { margin-top: 0; }
+  .freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { top: 58px; }
+}
+
+/* Optical offset: both section tags sit 16px lower than the geometric
+   alignment. The sticky offsets drop by the same 16px so, while scrolling,
+   each tag still stops just below the header. */
+.freelance-container:not(.workshop) .div-block-4.freelance .agenda-arrow.freelance { margin-top: 8px; }
+.freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { top: 50px; }
+.workshop .div-block-4.freelance .agenda-arrow.freelance { margin-top: 33px; }
+.workshop .div-block-4.freelance .link-block-3 { top: 68px; }
+@media screen and (max-width: 991px) {
+  .freelance-container:not(.workshop) .div-block-4.freelance .agenda-arrow.freelance { margin-top: 16px; }
+  .freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { top: 42px; }
+  .workshop .div-block-4.freelance .agenda-arrow.freelance { margin-top: 41px; }
+  .workshop .div-block-4.freelance .link-block-3 { top: 60px; }
+}
+
+/* "top" button: fixed in the cards' right-hand column (its x comes from the
+   workshop group's spacer, set by the script in index.html). It fades in once
+   the page has scrolled and lifts above the footer when the footer shows. */
+.top-float {
+  position: fixed !important;
+  left: var(--top-x, auto);
+  bottom: calc(24px + var(--top-lift, 0px)) !important;
+  top: auto !important;
+  z-index: 20;
+  width: 48px;
+  height: auto !important;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+}
+html.top-on .top-float { opacity: 1; visibility: visible; transform: none; transition: opacity .3s ease, transform .3s ease, visibility 0s; }
+@media screen and (max-width: 991px) { .top-float { width: 40px; } }
+@media (prefers-reduced-motion: reduce) { .top-float, html.top-on .top-float { transform: none; transition: none; } }
+
+/* Section tags ("featured work", "bonus work") are labels, not
+   controls: no pointer, no click (the arrow is decorative). */
+.div-block-4.freelance .link-block-3 { cursor: default; pointer-events: none; }
+/* "featured work" overhangs its 28px box by ~38px once rotated; space the
+   arrow ~24px below the text, matching the workshop tag. */
+.freelance-container:not(.workshop) .agenda-arrow.freelance { grid-row-gap: 62px; }
+
+/* "featured work" stops sticking when the end of its arrow meets the bottom of
+   the last featured card. The arrow hangs below the sticky link's box, so the
+   link carries a bottom margin of that overhang (sticky stops on the margin box). */
+.freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { margin-bottom: 45px; }
+@media screen and (max-width: 991px) {
+  .freelance-container:not(.workshop) .div-block-4.freelance .link-block-3 { margin-bottom: 53px; }
+}
+
+/* Workshop tiles, desktop: the headline is capped at 34ch, so put "View more"
+   (or the NDA / under-construction note) on the same row, right-aligned to the
+   tile edge and top-aligned with the headline. */
+@media screen and (min-width: 992px) {
+  .ws-body { flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .ws-body > .ws-title { flex: 1 1 auto; min-width: 0; }
+  .ws-body > .ws-cta, .ws-body > .ws-status { flex: none; margin: 2px 0 0; }
+}
+
+/* Workshop buttons: the same outlined square as the featured cards' "View case
+   study" (1.5px grey border, 2px corners; on hover the border takes the
+   project color and the button opens up a little). The NDA / under-construction
+   notes get a muted, non-interactive version of the box. */
+.ws-cta, .ws-status {
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1.5px solid #cdd0d6;
+  border-radius: 2px;
+  line-height: 16px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: border-color .2s ease, background-color .2s ease, padding .2s ease, gap .2s ease;
+}
+.ws-cta { color: #1a1b1fde; font-weight: 500; }
+.ws-status { color: #a7a7a7; border-color: #cdd0d6a1; }
+.ws-tile { --ws-accent: #b879fc; }
+#caimber.ws-tile { --ws-accent: #87b701; }
+#chat-gifs.ws-tile { --ws-accent: #01ac47; }
+#entertainment-space.ws-tile { --ws-accent: #fbbc04; }
+#apple.ws-tile { --ws-accent: #1a1b1f; }
+#thryft.ws-tile { --ws-accent: #1fbf62; }
+a.ws-tile:hover .ws-cta { border-width: 1.5px; border-color: var(--ws-accent); background-color: #ffffffed; padding-left: 18px; padding-right: 18px; gap: 14px; }
+a.ws-tile:active .ws-cta { background-color: var(--ws-accent); }
+a.ws-tile:hover .ws-cta img { transform: none; }
+
+/* Workshop tiles move like the featured cards: the image box shifts toward the
+   cursor (card-tilt, wired up in index.html) and the image eases in 1.5% on
+   hover, on every tile. */
+
+/* Button corner test: featured "View case study / View more" buttons get a
+   slightly rounded top-left and fully rounded other corners; the shop tiles' buttons
+   mirror it (top-right is the tight corner). */
+.freelance-content .link-block-8, .freelance-content .link-block-9 { border-radius: 2px 22px 22px 22px; } /* 22px = half the 44px height: fully round, without shrinking the 2px corner */
+.ws-cta { border-radius: 19px 2px 19px 19px; } /* half the 38px height */
+
+/* Shop grid rows use the same vertical gap as the featured cards
+   (48px desktop, 32px tablet, 24px phone). Column gap stays 32px. */
+.freelance-content.ws-grid { row-gap: 48px; }
+@media screen and (max-width: 991px) { .freelance-content.ws-grid { row-gap: 32px; } }
+@media screen and (max-width: 479px) { .freelance-content.ws-grid { row-gap: 24px; } }
+
+/* Header "Let's Talk" links end at the right edge of the page content (the
+   cards), not past the label/top column, so the dark-area check behind them
+   lines up with the cards. The name and circle stay where they are. */
+@media screen and (min-width: 992px) { .container-header .hdr-talk { padding-right: 54px; } }
+@media screen and (min-width: 768px) and (max-width: 991px) { .container-header .hdr-talk { padding-right: 46px; } }
+@media screen and (max-width: 767px) { .container-header .hdr-talk { padding-right: 24px; } }
+@media screen and (max-width: 479px) { .container-header .hdr-talk { padding-right: 16px; } }
+
+/* Case-study body text: was Avenir Next Thin (weight 100), which read very light.
+   Now a regular 400: the site's Avenir LT Std Book webfont, falling back to the
+   Avenir Next Regular installed on Macs where the webfonts can't load (e.g. previews). */
+@font-face {
+  font-family: "Avenir Next Local";
+  src: local("AvenirNext-Regular"), local("Avenir Next Regular"), local("Avenir Next");
+  font-weight: 400;
+}
+.p1, .p2 {
+  font-family: "Avenirltstd Book", "Avenir Next Local", Avenir, "Helvetica Neue", sans-serif;
+  font-weight: 400;
+}
+
+/* Case-study intro: company logo with the year to its right, like the homepage cards
+   (the YEAR column under the intro paragraph is gone). */
+.cs-logo-row { display: flex; align-items: center; gap: 14px; margin: 72px 0 18px; }  /* top margin clears the 46px sticky header */
+.cs-logo-row .cs-logo { display: block; height: auto; max-width: none; }
+/* the TrueToForm logo file has ~16% empty space on its right edge */
+.cs-logo-row .cs-logo.ttf { margin-right: -21px; }
+
+/* Case-study intro: less empty space up top so the first product screens peek
+   above the fold. The template added 124px above the intro (100px on phones) on
+   top of the logo row's own 72px, even though the sticky header already sits in
+   the page flow. The "overview" side label moves up to line up with the logo row. */
+.div-block-40 > .overview { margin-top: 16px; gap: 28px; }
+.cs-logo-row { margin-top: 40px; }
+.div-block-40 > .context-tag { margin-top: 56px; }
+
+/* Case-study section tags (overview / context / process …): same type as the homepage section labels,
+   each word centered on its arrow (the boxes were wider than their 48px column, so auto margins pinned
+   the longer words to the left), and the column is shifted under the header's circle by custom.js (--tag-dx). */
+.link-block-7.context-tag { translate: var(--tag-dx, 0px) 0; }
+.link-block-7 .text-block-8 {
+  /* vertical text (reads bottom to top like the homepage labels) so the layout reserves the word's full length */
+  writing-mode: vertical-rl; transform: rotate(180deg) !important; width: auto !important; height: auto !important;
+  display: block !important; white-space: nowrap; line-height: 28px;
+  margin-left: 0 !important; margin-right: 0 !important; align-self: center;
+  color: #0d0c0e; font-family: "Avenir Next", sans-serif; font-size: 16px; font-weight: 400; letter-spacing: .03em;
+}
+
+/* "bonus work" sticks the same 8px under the header as "featured work" (it was 25px).
+   Only the sticky offset changes; its resting place next to the first tile and where it stops are the same. */
+.workshop .div-block-4.freelance .link-block-3 { top: 51px; }
+@media screen and (max-width: 991px) { .workshop .div-block-4.freelance .link-block-3 { top: 43px; } }
+
+/* Case-study section tags (overview, context, process…): stop sticking with the end of the
+   label 19px below the header circle, the same gap as the home page labels (they stopped ~49px below). */
+@media screen and (min-width: 768px) { .link-block-7.context-tag { top: -30px; } }
+
+/* Product screens on every case study: elevated with a soft layered shadow, and the same cursor shift as
+   the home page cards (smaller travel to suit phone-sized shots). Motion is mouse/trackpad only.
+   custom.js tags the screens with .shot-lift and feeds the pointer position into --mx/--my. */
+.shot-lift{box-shadow:0 1px 2px rgba(16,18,40,.045),0 14px 28px -12px rgba(16,18,40,.198),0 40px 70px -30px rgba(16,18,40,.288)!important;
+  transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .6s ease}
+@media (hover: hover) and (prefers-reduced-motion: no-preference){
+  .shot-lift{transform:translate3d(calc(var(--mx,0) * 8px),calc(var(--my,0) * 6px),0);will-change:transform}
+  .shot-lift:hover{box-shadow:0 1px 2px rgba(16,18,40,.054),0 16px 32px -12px rgba(16,18,40,.198),0 48px 80px -32px rgba(16,18,40,.288)!important}
+}
+
+/* Case-study purple headings and stats: was #7180f0 (3.3:1 on the #f9f9fa page, fails WCAG AA).
+   Deeper, more saturated purple at 5.05:1, which passes AA for text at any size. */
+.h2.purple, .bold-text-4.purple { color: #684cf6; }
+
+/* Featured cards: project type + the skills it shows, right under the headline, so hiring managers can scan */
+/* Sits right under the headline as one group: the headline keeps its 22px margin and the column adds a 24px gap,
+   so pull the tags up to about 12px below the title. */
+.card-tags { display: flex; flex-direction: column; gap: 10px; margin: -34px 0 4px; }
+.card-tags .ct-type { font-family: Avenirltstd, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: rgb(13 12 14 / .62); }
+/* 6px between wrapped rows, 8px between pills in a row. The list items also carried the site-wide 10px li margin,
+   which made wrapped rows sit 18px apart; zero it so the gap alone sets the spacing. */
+.card-tags .ct-skills { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
+.card-tags .ct-skills li { margin: 0; }
+/* Flat labels, not buttons: no outline, a fill a touch darker than whatever card art sits behind them. */
+.card-tags .ct-skills li { padding: 8px 14px 7px; border: 0; border-radius: 999px; background: rgb(13 12 14 / .06);
+  font-family: "Avenirltstd Book", Avenirltstd, sans-serif; font-size: 14px; line-height: 17px; color: rgb(13 12 14 / .8); white-space: nowrap; }
+.card-tags.on-dark .ct-type { color: rgb(255 255 255 / .7); }
+.card-tags.on-dark .ct-skills li { background: rgb(255 255 255 / .12); color: rgb(255 255 255 / .88); }
+/* Phones: the card text sits over the card's image with no room to spare, so the tags show on tablet and desktop only */
+@media screen and (max-width: 767px) { .card-tags { display: none; } }
+
+/* Featured cards, desktop: more room above and below the headline + tags group (the tags stay ~12px under the
+   headline as one unit). The headline starts below the logo row with clear space, and the case-study button sits near the bottom of the card, so spare height opens up
+   between the tags and the button instead of piling up under it. Tighter steps on smaller desktops (shorter cards). */
+@media screen and (min-width: 1200px) {
+  .freelance-content > .frame-10 .div-block-3 { display: flex; flex-direction: column; height: 100%; box-sizing: border-box; padding-bottom: 36px; }
+  .freelance-content > .frame-10 .div-block-3 > .div-block-9 { flex: none; height: auto; margin-bottom: 0; }
+  .freelance-content > .frame-10 .div-block-47,
+  .freelance-content > .frame-10 .div-block-52 { flex: 1 1 auto; height: auto; min-height: 0; justify-content: flex-start; padding-bottom: 0; gap: 0; }
+  .freelance-content > .frame-10 .div-block-3 .h1 { margin-top: 32px; margin-bottom: 0; }
+  .freelance-content > .frame-10 .card-tags { margin-top: 12px; margin-bottom: 32px; }
+  .freelance-content > .frame-10 .case-study { margin-top: auto; }
+}
+@media screen and (min-width: 1200px) and (max-width: 1299px) {
+  .freelance-content > .frame-10 .div-block-3 .h1 { margin-top: 24px; }
+  .freelance-content > .frame-10 .card-tags { margin-top: 12px; margin-bottom: 24px; }
+}
+@media screen and (min-width: 1400px) {
+  .freelance-content > .frame-10 .div-block-3 { padding-bottom: 40px; }
+  .freelance-content > .frame-10 .div-block-3 .h1 { margin-top: 40px; }
+  .freelance-content > .frame-10 .card-tags { margin-top: 14px; margin-bottom: 44px; }
+}
+
+/* Featured cards: the project type, domain and skills now read as one quiet line of body text
+   (sentence case, no pills), so each card is just headline, one meta line and the button. */
+.card-tags .ct-line { margin: 0; max-width: 36em; font-family: "Avenirltstd Book", Avenirltstd, sans-serif; font-size: 16px; line-height: 24px;
+  font-weight: 400; letter-spacing: 0; text-transform: none; color: rgb(13 12 14 / .62); }
+.card-tags.on-dark .ct-line { color: rgb(255 255 255 / .72); }
+@media screen and (min-width: 768px) and (max-width: 1199px) { .card-tags .ct-line { font-size: 14px; line-height: 20px; } }
+
+/* Featured card meta line: lighter weight, black text (light text stays on the dark Play Movies card).
+   Avenir LT Std Light on the real site; Avenir Light on Macs where the webfonts can't load (previews). */
+@font-face { font-family: "Avenir Light Local"; src: local("Avenir-Light"), local("Avenir Light"); font-weight: 300; }
+.card-tags .ct-line { font-family: Avenirltstd, "Avenir Light Local", "Helvetica Neue", sans-serif; font-weight: 300; color: #0d0c0e; }
+.card-tags.on-dark .ct-line { color: rgb(255 255 255 / .86); }
+
+/* TrueToForm case study: the remaining lighter purples (the "resources"-style highlights, the bold callout and
+   the TL;DR goals' gradient) use the same deeper, AA-passing #684cf6 as the stat numbers. */
+.text-span, .bold-text-11 { color: #684cf6; }
+.bold-text-11 { background-color: rgb(104 76 246 / .1); }
+.bold-text-3 { background-image: linear-gradient(61deg, #684cf6, #4f63e6 57%, #6a3ff0); }
+
+/* Results stats (TrueToForm, FitSearch): the big green numbers are the payoff, so they run larger,
+   about 1.5x on desktop. The number column is one fixed width that fits the widest number, so the labels line up; phones stack number over label. */
+.bold-text-5 { font-size: clamp(64px, 6.4vw, 88px); line-height: 1; letter-spacing: -.02em; }
+.div-block-28 > .heading { width: auto; flex: 0 0 clamp(170px, 15.6vw, 228px); }
+@media screen and (max-width: 767px) {
+  .bold-text-5 { font-size: 64px; }
+  .div-block-28 { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .div-block-28 > .heading { flex: none; width: 100%; }
+  .div-block-28 > .div-block-29 { width: 100%; }
+}
+
+/* Paragraph ink: a hair lighter than black with a touch of navy, used for body copy on every page.
+   Colored and muted variants (pink quotes and lists, struck-through items, white text on dark cards) keep their own colors. */
+:root { --ink: #1f2433; --ink-soft: #3b4052; }
+.p1:not(.pink):not(.strike), .p2, .paragraph, .card-tags .ct-line { color: var(--ink); }
+.card-tags.on-dark .ct-line { color: rgb(255 255 255 / .86); }
+.hero-subtext { color: var(--ink-soft); }
+.hero-subtext-role { color: var(--ink); }
+/* the same ink for the smaller body styles: TrueToForm role/team lists and the 14px image captions */
+.text-block-6, .text-block-7, .bold-text-9 { color: var(--ink); }
+
+/* Case-study titles: Avenir LT Std Black on the real site. Where the webfonts can't load (the artifact preview),
+   fall back to the Avenir Black installed on Macs instead of a generic bold sans, so the titles keep their full weight. */
+@font-face { font-family: "Avenir Black Local"; src: local("Avenir-Black"), local("Avenir Black"); font-weight: 900; }
+.h2.title { font-family: Avenirltstd, "Avenir Black Local", "Avenir Next", Avenir, "Helvetica Neue", sans-serif; font-weight: 900; }
+
+/* TrueToForm hero: the four app screens float gently like a bunch of balloons. Same few-pixel bob, but each screen
+   has its own slightly different duration and a staggered start, so they drift in and out of sync and never move in lockstep.
+   Uses the standalone `translate` property so it stacks with the hover lift (which uses `transform`). Off for reduced motion. */
+@keyframes balloon-float { from { translate: 0 0; } to { translate: 0 -7px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .quick-stack-2 .cell-drop-shadow { animation: balloon-float 3.2s ease-in-out infinite alternate; }
+  .quick-stack-2 > :nth-child(1) .cell-drop-shadow { animation-duration: 3.2s; animation-delay: -0.4s; }
+  .quick-stack-2 > :nth-child(2) .cell-drop-shadow { animation-duration: 3.6s; animation-delay: -1.7s; }
+  .quick-stack-2 > :nth-child(3) .cell-drop-shadow { animation-duration: 3.4s; animation-delay: -2.6s; }
+  .quick-stack-2 > :nth-child(4) .cell-drop-shadow { animation-duration: 3.8s; animation-delay: -1.1s; }
+}
+
+/* Case-study eyebrow year: same black label style as ROLES / TEAM */
+.cs-logo-row .card-year { font-family: Avenirltstd, "Avenir Black Local", "Avenir Next", Avenir, sans-serif; font-weight: 900; font-size: 12px; line-height: 18px; letter-spacing: 1px; color: #1a1b1f; }
+
+
+/* ---------------------------------------------------------------------------
+   Display titles: one shared style for the big headlines across the site
+   (homepage hero, homepage card titles, project page titles).
+   Change the font here and every display title follows.
+   --------------------------------------------------------------------------- */
+:root {
+  --display-font: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif;
+  --display-weight: 900;
+  --display-weight-card: 800; /* homepage card titles run longer, so one step lighter */
+  --display-tracking: -.03em;
+  /* display-title size, per breakpoint */
+  --display-size: 4.55rem;
+}
+@media screen and (max-width: 991px) { :root { --display-size: 3.02rem; } }
+@media screen and (max-width: 767px) { :root { --display-size: 2.48rem; } }
+@media screen and (max-width: 479px) { :root { --display-size: 2.13rem; } }
+h1.title { font-size: var(--display-size) !important; line-height: 1.12 !important; }
+.header-hero,
+h1.title {
+  font-family: var(--display-font) !important;
+  font-weight: var(--display-weight) !important;
+  letter-spacing: var(--display-tracking) !important;
+}
+.h1.ttf, .h1.mtv {
+  font-family: var(--display-font) !important;
+  font-weight: var(--display-weight-card) !important;
+  letter-spacing: var(--display-tracking) !important;
+}
+
+/* Hero subtext: a little wider and balanced so the last line never ends on a single word */
+.hero-subtext { max-width: 680px; text-wrap: pretty; }
+
+/* Project intro: title block on the left, Roles / Team stacked in a column on the right,
+   top-aligned with the logo row (same treatment as the Claims page). Tablet and phone keep the stacked layout. */
+@media screen and (min-width: 992px) {
+  .div-block-23:has(> .cs-logo-row) { display: grid; grid-template-columns: minmax(0, 1fr) 260px; column-gap: 56px; align-items: start; }
+  .div-block-23:has(> .cs-logo-row) > * { grid-column: 1; }
+  .div-block-23 > .cs-logo-row ~ .quick-stack {
+    grid-column: 2; grid-row: 1 / span 3; align-self: start;
+    display: flex !important; flex-direction: column; gap: 20px; grid-template-columns: none !important;
+    width: auto; margin: 0 !important; padding: 0 !important;
+  }
+  .div-block-23 > .cs-logo-row ~ .quick-stack > .cell { margin: 0; padding: 0; }
+  .div-block-23 > .cs-logo-row ~ .quick-stack ~ * { grid-column: 1 / -1; }
+  .div-block-23:has(> .cs-logo-row) { padding-top: 40px; }
+  .div-block-23 > .cs-logo-row { margin-top: 0 !important; }
+}
+.div-block-23 > .cs-logo-row ~ .quick-stack h5.h4 { color: #1a1b1f; }
+
+/* Side section labels are static markers, not links; only the "top" tag is interactive */
+.link-block-7.context-tag { pointer-events: none; cursor: default; }
+a.link-block-2 { cursor: pointer; }
+a.link-block-2:hover .tag-top, a.link-block-2:focus-visible .tag-top { color: #5D4FDD; }
+
+/* Project-page section titles: same display style and size as the section titles on the claims page
+   (Schibsted Grotesk 900, ~44px). Only plain h3.h2 headings; "~" sub-heads and colored stat headings keep their styles. */
+h3[class="h2"], h3[class="h2"] > strong {
+  font-family: var(--display-font) !important;
+  font-weight: var(--display-weight) !important;
+  font-size: clamp(30px, 3.1vw, 44px) !important;
+  line-height: 1.18 !important;
+  letter-spacing: -.025em !important;
+  color: #1a1b1f;
+}
+h3[class="h2"] { max-width: 760px; text-wrap: balance; margin-bottom: 8px !important; }
+h3[class="h2"] > strong { display: inline; }
+
+/* Entertainment Space "A brief background" screens: let the shared screen shadow show (the wrappers were clipping it) */
+.div-block-69, .div-block-70 { overflow: visible !important; }
+.background-video-5 { overflow: hidden; }
+
+/* Hero facts (My role / Team / Outcome): slightly tighter lines, like the claims page */
+.div-block-23 .quick-stack .p2 { line-height: 24px !important; }
+.div-block-23 .quick-stack .cell + .cell { margin-top: 4px; }
+
+/* Play Movies & TV hero: the four phone screens float like the TrueToForm hero (same balloon-float, staggered) */
+@media (prefers-reduced-motion: no-preference) {
+  .quick-stack-2.ios > * > img { animation: balloon-float 3.2s ease-in-out infinite alternate; }
+  .quick-stack-2.ios > :nth-child(1) > img { animation-duration: 3.2s; animation-delay: -0.4s; }
+  .quick-stack-2.ios > :nth-child(2) > img { animation-duration: 3.6s; animation-delay: -1.7s; }
+  .quick-stack-2.ios > :nth-child(3) > img { animation-duration: 3.4s; animation-delay: -2.6s; }
+  .quick-stack-2.ios > :nth-child(4) > img { animation-duration: 3.8s; animation-delay: -1.1s; }
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme for individual project pages: add class="theme-dark" to <body>.
+   Near-black ground, near-white text, same hierarchy; brand accents (pink, purple) unchanged.
+   --------------------------------------------------------------------------- */
+body.theme-dark, .theme-dark .container-2 { background-color: #0e0e11 !important; background-image: none !important; }
+.theme-dark h1, .theme-dark h1.title, .theme-dark h5.h4, .theme-dark .card-year,
+.theme-dark h3[class="h2"], .theme-dark h3[class="h2"] > strong,
+.theme-dark .bold-text, .theme-dark .bold-text-4.black, .theme-dark .bold-text-9, .theme-dark .bold-text-16,
+.theme-dark .bold-text-18, .theme-dark .bold-text-19, .theme-dark h5.h2.small, .theme-dark h6.h2 { color: #f4f4f6 !important; }
+.theme-dark p, .theme-dark .p1, .theme-dark .p2 { color: #c9cbd3 !important; }
+.theme-dark strong:not([class]) { color: inherit; }
+.theme-dark .p1.bold-list.strike { color: #7d7f88 !important; }
+/* white stat cards become raised dark surfaces */
+.theme-dark .cell-2, .theme-dark .div-block-20, .theme-dark .cell-24 { background-color: #1b1b21 !important; box-shadow: none !important; }
+/* side section tags + "top" tag */
+.theme-dark .text-block-8, .theme-dark .section-label { color: #e9eaee !important; }
+.theme-dark .context-tag img, .theme-dark .agenda-arrow img { filter: invert(1); }
+/* header */
+.theme-dark .frame-11 .text, .theme-dark .frame-11 .text-4 { color: #f4f4f6 !important; }
+.theme-dark .frame-11 .image-16, .theme-dark .frame-11 .vectors-wrapper-7, .theme-dark .frame-11 .vectors-wrapper-8 { filter: invert(1); }
+.theme-dark .section.footer, .theme-dark section.footer { border-top: 1px solid rgba(255,255,255,.08); }
+
+/* FitSearch: walkthrough videos showed no shadow because their wrapper clipped it; hero screen floats like the claims/TTF heroes */
+.div-block-64 { overflow: visible !important; }
+.background-video-4 { overflow: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  img[data-float="hero"] { animation: balloon-float 3.6s ease-in-out infinite alternate; }
+}
+
+/* Project pages: the "overview" side label starts level with the top of the eyebrow (logo + years) */
+.div-block-40 > .context-tag > .div-block-42.contect-tag { translate: 0 -93px; }
+
+/* Caimber walkthrough iPad screens: shadow ~30% softer than the shared screen shadow */
+img.image-36.shot-lift{box-shadow:0 1px 2px rgba(16,18,40,.032),0 14px 28px -12px rgba(16,18,40,.139),0 40px 70px -30px rgba(16,18,40,.2)!important}
+@media (hover:hover){img.image-36.shot-lift:hover{box-shadow:0 1px 2px rgba(16,18,40,.038),0 16px 32px -12px rgba(16,18,40,.139),0 48px 80px -32px rgba(16,18,40,.2)!important}}
+
+/* Entertainment Space hero video: breathing room below the facts row + the same gentle float as other heroes */
+[data-float="hero"].w-background-video { margin-top: 56px !important; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-float="hero"].w-background-video { animation: balloon-float 3.6s ease-in-out infinite alternate; }
+}
+
+/* Dark theme: keep the project-pink paragraphs (lists, quotes) pink instead of the generic body grey */
+.theme-dark p.pink, .theme-dark p.pink strong { color: #e52c7d !important; }
+a#apple.ws-tile:active .ws-cta { color: #fff; } a#apple.ws-tile:active .ws-cta img { filter: invert(1); }
+
+
+/* ---------------------------------------------------------------------------
+   Site cursor (every page that loads custom.css/custom.js; the claims page has its own copy)
+   --------------------------------------------------------------------------- */
+/* Crosshair cursor (same as the claims page): thin crosshair + dot; over links/buttons it twists a quarter turn, grows, and turns brand purple.
+   A faint white halo keeps it visible on the dark cards and footer. Mouse/trackpad only. */
+.portfolio-cursor{display:none;position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;transform:translate(-50%,-50%)}
+@media (hover:hover) and (pointer:fine){html.has-xhair-cursor,html.has-xhair-cursor *{cursor:none!important}html.has-xhair-cursor .portfolio-cursor.is-visible{display:block}}
+.portfolio-cursor>span{display:block;width:27px;height:27px;color:#1f1f24;filter:drop-shadow(0 0 1px rgba(255,255,255,.9));
+  background:radial-gradient(circle,currentColor 0 1.9px,transparent 2.5px) center/9px 9px no-repeat,
+    linear-gradient(currentColor,currentColor) top center/1px 8px no-repeat,
+    linear-gradient(currentColor,currentColor) bottom center/1px 8px no-repeat,
+    linear-gradient(currentColor,currentColor) left center/8px 1px no-repeat,
+    linear-gradient(currentColor,currentColor) right center/8px 1px no-repeat;
+  transition:transform 380ms cubic-bezier(.34,1.3,.5,1),color 200ms ease}
+.portfolio-cursor.is-interactive>span{color:#5D4FDD;transform:rotate(90deg) scale(1.3)}
+@media (prefers-reduced-motion:reduce){.portfolio-cursor>span{transition:color 150ms ease}}
+@media print{.portfolio-cursor{display:none!important}}
+
+/* Cursor pieces: vertical arms, horizontal arms, a middle segment (only shown as an I-beam) and the dot.
+   Over text: the horizontal arms rotate to vertical, the middle fills in and the dot fades, so the crosshair becomes a text cursor. */
+html .portfolio-cursor>span{filter:drop-shadow(0 0 1px rgba(255,255,255,.9));position:relative;display:block;width:27px!important;height:27px!important;background:none!important;border-radius:0!important;opacity:1!important}
+.portfolio-cursor>span>i{position:absolute;inset:0;display:block;transition:transform 320ms cubic-bezier(.34,1.3,.5,1),opacity 200ms ease}
+.portfolio-cursor .xh-v{background:linear-gradient(currentColor,currentColor) top center/1px 8px no-repeat,linear-gradient(currentColor,currentColor) bottom center/1px 8px no-repeat}
+.portfolio-cursor .xh-h{background:linear-gradient(currentColor,currentColor) left center/8px 1px no-repeat,linear-gradient(currentColor,currentColor) right center/8px 1px no-repeat}
+.portfolio-cursor .xh-m{background:linear-gradient(currentColor,currentColor) center/1px 11px no-repeat;opacity:0;transform:scaleY(0)}
+.portfolio-cursor .xh-d{background:radial-gradient(circle,currentColor 0 1.9px,transparent 2.5px) center/9px 9px no-repeat}
+.portfolio-cursor.is-text>span{transform:none!important;color:#1f1f24!important}
+.portfolio-cursor.is-text .xh-h{transform:rotate(90deg)}
+.portfolio-cursor.is-text .xh-m{opacity:1;transform:none}
+.portfolio-cursor.is-text .xh-d{opacity:0;transform:scale(0)}
+@media (prefers-reduced-motion:reduce){.portfolio-cursor>span>i{transition:opacity 120ms ease}}
+
+/* Dark-theme pages: light crosshair and text cursor, lighter purple on links */
+.theme-dark .portfolio-cursor>span{color:#f4f4f6!important;filter:drop-shadow(0 0 1px rgba(0,0,0,.8))!important}
+.theme-dark .portfolio-cursor.is-text>span{color:#f4f4f6!important}
+.theme-dark .portfolio-cursor.is-interactive>span{color:#9d94ff!important}
+
+/* Cursor v2: pixel-snapped (27px box, offset by whole pixels so the 1px lines sit exactly on the center column).
+   Text mode: horizontal arms rotate onto the vertical axis, then fade, leaving one straight line drawn from the
+   vertical arms + middle segment; once aligned, the stroke eases in from 1px to 2px. */
+@property --sw { syntax: '<length>'; inherits: true; initial-value: 1px; }
+.portfolio-cursor { transform: translate(-13px, -13px) !important; }
+.portfolio-cursor > span > i { --sw: 1px; transition: transform 300ms cubic-bezier(.34,1.3,.5,1), opacity 160ms ease, --sw 120ms ease-out; }
+.portfolio-cursor .xh-v { background: linear-gradient(currentColor,currentColor) top center/var(--sw) 8px no-repeat, linear-gradient(currentColor,currentColor) bottom center/var(--sw) 8px no-repeat; }
+.portfolio-cursor .xh-h { background: linear-gradient(currentColor,currentColor) left center/8px 1px no-repeat, linear-gradient(currentColor,currentColor) right center/8px 1px no-repeat; }
+.portfolio-cursor .xh-m { background: linear-gradient(currentColor,currentColor) center/var(--sw) 11px no-repeat; }
+.portfolio-cursor.is-text > span > i { --sw: 2px; transition: transform 300ms cubic-bezier(.34,1.3,.5,1), opacity 160ms ease, --sw 260ms cubic-bezier(.55,0,.75,.2) 300ms; }
+.portfolio-cursor.is-text .xh-h { transform: rotate(90deg); opacity: 0; transition: transform 300ms cubic-bezier(.34,1.3,.5,1), opacity 120ms ease 290ms; }
+.portfolio-cursor.is-text .xh-m { opacity: 1; transform: none; transition: opacity 120ms ease 220ms, transform 120ms ease 220ms, --sw 260ms cubic-bezier(.55,0,.75,.2) 300ms; }
+@media (prefers-reduced-motion: reduce) { .portfolio-cursor > span > i, .portfolio-cursor.is-text > span > i, .portfolio-cursor.is-text .xh-h, .portfolio-cursor.is-text .xh-m { transition: opacity 120ms ease; } }
+
+/* Site footer: featured work and bonus work as two lists, side by side on desktop (built in custom.js).
+   Each row: a small cover thumbnail, the project name, its year (or "You're here"), and an arrow that slides in on hover. */
+.footer .fb-cols { width: 100%; max-width: 932px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px; margin: 8px 0 40px; }
+.footer .fb-group { min-width: 0; }
+.footer .fb-label { font-family: Avenirltstd, "Avenir Next", Avenir, sans-serif; font-size: 12px; line-height: 16px; letter-spacing: 1.6px; text-transform: uppercase; color: rgb(255 255 255 / .56); margin: 0 0 10px; }
+.footer .fb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.footer .fb-list li { margin: 0; padding: 0; }
+.footer .fb-row { display: flex; align-items: center; gap: 14px; padding: 10px 6px; text-decoration: none; color: #f4f4f6; border-radius: 10px; transition: background-color .2s ease; }
+.footer .fb-thumb { flex: none; width: 64px; height: 40px; border-radius: 7px; overflow: hidden; background: #1b1b21; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .06); }
+.footer .fb-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.footer .fb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.footer .fb-name { min-width: 0; font-family: Avenirltstd, "Avenir Next", Avenir, sans-serif; font-weight: 500; font-size: 15px; line-height: 20px; color: #f4f4f6; }
+.footer .fb-year, .footer .fb-here { flex: none; font-family: Avenirltstd, "Avenir Next", Avenir, sans-serif; font-size: 11px; line-height: 16px; letter-spacing: 1px; color: rgb(255 255 255 / .56); }
+.footer .fb-here { font-size: 18px; line-height: 20px; letter-spacing: 0; padding: 0 2px; color: #fff; opacity: 1; }
+.footer .fb-arrow { flex: none; width: 16px; font-size: 15px; line-height: 20px; text-align: right; color: #f4f4f6; opacity: .45; transition: opacity .2s ease, transform .2s ease; }
+.footer .fb-here + .fb-arrow { margin-left: -4px; }
+@media (hover: hover) {
+  .footer .fb-row:hover { background: rgb(255 255 255 / .05); }
+  .footer .fb-row:hover .fb-arrow { opacity: 1; transform: translateX(3px); }
+  .footer .fb-row.is-current:hover .fb-arrow { transform: rotate(-90deg) translateX(3px); }
+  .footer .fb-row:hover .fb-thumb img { transform: scale(1.06); }
+}
+.footer .fb-row:focus-visible { outline: 2px solid #f4f4f6; outline-offset: 2px; }
+@media (max-width: 767px) {
+  .footer .fb-cols { grid-template-columns: 1fr; gap: 28px; }
+  .footer .fb-name { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .footer .fb-thumb img, .footer .fb-arrow { transition: none; } }
+
+/* Header contact links over dark (dark-theme pages, or html.hdr-talk-dark when a dark area passes behind):
+   white hover underline, and the email tooltip flips to the footer's light pill. */
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .link-block:not(.non-interactive):hover { border-bottom-color: #fff; }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-tip-pill { background: #fff; color: #0d0c0e; }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-tip-pill span,
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-copy { color: #0d0c0e !important; font-weight: 700; }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-tip-pill::after { border-bottom-color: #fff; }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-copy { background: rgba(13,12,14,.08); }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-copy:hover { background: rgba(13,12,14,.16); }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .mail-copy:focus-visible { outline-color: #0d0c0e; }
+
+/* Footer "Go ahead, look around": display font at the same size as the project-page section titles */
+.footer .heading-2 { font-family: var(--display-font) !important; font-weight: var(--display-weight) !important; font-size: clamp(30px, 3.1vw, 44px) !important; line-height: 1.18 !important; letter-spacing: -.025em !important; color: #f4f4f6 !important; text-wrap: balance; }
+
+/* Header LinkedIn tooltip: the header sits at the top of the window, so it opens downward (like the Email one),
+   and flips to a light pill when the header is over a dark area or on a dark-theme page */
+.hdr-talk .link-block.has-tip::after { bottom: auto; top: calc(100% + 10px); transform: translate(-50%, -4px); }
+.hdr-talk .link-block.has-tip::before { bottom: auto; top: calc(100% + 4px); border: 6px solid transparent; border-top: 0; border-bottom-color: #0d0c0e; transform: translate(-50%, -4px); }
+.hdr-talk .link-block.has-tip:hover::before, .hdr-talk .link-block.has-tip:hover::after,
+.hdr-talk .link-block.has-tip:focus-visible::before, .hdr-talk .link-block.has-tip:focus-visible::after { transform: translate(-50%, 0); }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .link-block.has-tip::after { background: #fff; color: #0d0c0e; font-weight: 700; }
+:is(.theme-dark, html.hdr-talk-dark) .hdr-talk .link-block.has-tip::before { border-bottom-color: #fff; }
+
+/* Current page's row: arrow points up, since clicking it scrolls back to the top */
+.footer .fb-row.is-current .fb-arrow { transform: rotate(-90deg); }
+/* Footer arrows are drawn icons, not text glyphs */
+.footer .fb-arrow { display: grid; place-items: center; width: 20px; height: 20px; opacity: .6; }
+.footer .fb-arrow svg { display: block; width: 18px; height: 18px; }
+.footer .fb-row:hover .fb-arrow { opacity: 1; }
