@@ -1,6 +1,9 @@
 // custom.js — your own scripts and animations go here.
 // Loaded at the end of every page, after jQuery and webflow.js.
 
+// Tag the page by its filename so per-page styles (e.g. each project's brand color) can key off it
+document.documentElement.setAttribute('data-page', location.pathname.split('/').pop() || 'index.html');
+
 // "top" tag: smooth-scroll back to the top of the page on every page,
 // whether or not that page has a #top anchor.
 document.querySelectorAll('.sticky-tag-top').forEach(function (tag) {

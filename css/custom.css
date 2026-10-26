@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap');
 /*
   custom.css — your edits and new animations go here.
   Loaded after webflow.css on every page, so anything here wins.
@@ -464,9 +465,12 @@ html.top-on .top-float { opacity: 1; visibility: visible; transform: none; trans
 #entertainment-space.ws-tile { --ws-accent: #fbbc04; }
 #apple.ws-tile { --ws-accent: #1a1b1f; }
 #thryft.ws-tile { --ws-accent: #1fbf62; }
-a.ws-tile:hover .ws-cta { border-width: 1.5px; border-color: var(--ws-accent); background-color: #ffffffed; padding-left: 18px; padding-right: 18px; gap: 14px; }
-a.ws-tile:active .ws-cta { background-color: var(--ws-accent); }
-a.ws-tile:hover .ws-cta img { transform: none; }
+/* mouse/trackpad only: on touch screens a tap would leave the hover fill stuck on the button */
+@media (hover: hover) {
+  a.ws-tile:hover .ws-cta { border-width: 1.5px; border-color: var(--ws-accent); background-color: #ffffffed; padding-left: 18px; padding-right: 18px; gap: 14px; }
+  a.ws-tile:active .ws-cta { background-color: var(--ws-accent); }
+  a.ws-tile:hover .ws-cta img { transform: none; }
+}
 
 /* Workshop tiles move like the featured cards: the image box shifts toward the
    cursor (card-tilt, wired up in index.html) and the image eases in 1.5% on
@@ -783,7 +787,7 @@ img.image-36.shot-lift{box-shadow:0 1px 2px rgba(16,18,40,.032),0 14px 28px -12p
 
 /* Dark theme: keep the project-pink paragraphs (lists, quotes) pink instead of the generic body grey */
 .theme-dark p.pink, .theme-dark p.pink strong { color: #e52c7d !important; }
-a#apple.ws-tile:active .ws-cta { color: #fff; } a#apple.ws-tile:active .ws-cta img { filter: invert(1); }
+@media (hover: hover) { a#apple.ws-tile:active .ws-cta { color: #fff; } a#apple.ws-tile:active .ws-cta img { filter: invert(1); } }
 
 
 /* ---------------------------------------------------------------------------
@@ -895,3 +899,124 @@ html .portfolio-cursor>span{filter:drop-shadow(0 0 1px rgba(255,255,255,.9));pos
 .footer .fb-arrow { display: grid; place-items: center; width: 20px; height: 20px; opacity: .6; }
 .footer .fb-arrow svg { display: block; width: 18px; height: 18px; }
 .footer .fb-row:hover .fb-arrow { opacity: 1; }
+
+/* Phones: the vertical side labels (overview, context, process…) are hidden at this width, so each one
+   shows instead as a small "↓ label" line at the start of its section. Overrides the desktop sticky,
+   rotation and alignment offsets (some set inline by custom.js and the pages' own scripts). */
+@media screen and (max-width: 767px) {
+  .link-block-7.context-tag, .link-block-7.context-tag.context-tag-2 {
+    display: block !important; position: static !important; top: auto !important; translate: none !important;
+    order: -1; flex: 0 0 100%; align-self: flex-start; height: auto !important; width: 100% !important; margin: 48px 0 16px !important;
+  }
+  /* the label sits right above its section's first heading, not with the section's own top gap in between */
+  .link-block-7.context-tag + * { margin-top: 0 !important; padding-top: 0 !important; }
+  .link-block-7.context-tag + * > :first-child, .link-block-7.context-tag + * > :first-child > :first-child { margin-top: 0 !important; }
+  /* the label's section lays its children out in a row: let the label take its own line above the content */
+  :has(> .link-block-7.context-tag) { flex-wrap: wrap !important; }
+  .div-block-40 > .link-block-7.context-tag { margin-top: 24px !important; }
+  .link-block-7.context-tag .div-block-42 {
+    flex-direction: row !important; justify-content: flex-start; align-items: center; gap: 8px !important;
+    width: auto !important; height: auto !important; margin: 0 !important; translate: none !important;
+  }
+  /* FitSearch's "walkthrough" label sits inside two extra wrappers; the outer one is hidden at this width */
+  .link-block-7.context-tag .div-block-4, .link-block-7.context-tag .div-block-43 {
+    display: block !important; padding: 0 !important; margin: 0 !important; height: auto !important;
+  }
+  .link-block-7.context-tag .div-block-42 img { order: -1; width: auto; height: 18px; }
+  .link-block-7.context-tag .text-block-8 {
+    writing-mode: horizontal-tb !important; transform: none !important; margin: 0 !important; line-height: 20px;
+  }
+}
+
+/* Phones, project intros: My role and Team side by side, Outcome on its own full-width line below
+   (the same layout the Claims page uses) */
+@media screen and (max-width: 767px) {
+  .quick-stack { grid-template-columns: 1fr 1fr !important; }
+  .quick-stack > .cell:nth-child(3) { grid-column: 1 / -1 !important; }
+  .quick-stack > .cell { margin-top: 0 !important; } /* the Team column had a 4px offset that shows once it sits beside My role */
+}
+
+/* Phones: product screens (screenshots, screen recordings, the Wellness Picture phones) get smaller corners
+   on every project page, along with the frames that clip them */
+@media screen and (max-width: 767px) {
+  .shot-lift, .shot-lift img, .shot-lift video,
+  .cell-drop-shadow, .div-block-20, .div-block-64, .cell-24,
+  .w-background-video, .w-background-video video,
+  .wp-phone, .wp-phone img, .wp-phone video, .wp-screens img,
+  .div-block-69, .div-block-70, .cell-8, .ap-hero img, .apple-fig img { border-radius: 10px !important; }
+}
+
+/* Phones, home page: same "↓ label" line at the start of "featured work" and "bonus work"
+   (the side label column is hidden at this width) */
+@media screen and (max-width: 767px) {
+  .freelance-container { flex-wrap: wrap !important; }
+  .freelance-container > .div-block-4.freelance { display: block !important; order: -1; flex: 0 0 100%; width: 100% !important; height: auto !important; margin: 0 0 16px !important; padding: 0 !important; position: static !important; }
+  .div-block-4.freelance .link-block-3 { display: block !important; position: static !important; top: auto !important; margin: 0 !important; }
+  .div-block-4.freelance .agenda-arrow.freelance { flex-direction: row !important; justify-content: flex-start; align-items: center; gap: 8px !important; margin: 0 !important; width: auto !important; height: auto !important; }
+  .div-block-4.freelance .agenda-arrow.freelance img { order: -1; width: auto; height: 18px; }
+  .div-block-4.freelance .section-label.tag-1 { transform: none !important; writing-mode: horizontal-tb !important; width: auto !important; height: auto !important; margin: 0 !important; line-height: 20px; }
+}
+
+/* Phones: bonus work tiles get the featured-card treatment. One rounded card per project: logo and year on top,
+   the title in the display face, the outlined pill button, then the image, on a card colored like the image's top edge */
+@media screen and (max-width: 767px) {
+  .ws-tile { display: flex !important; flex-direction: column; gap: 0 !important; border-radius: 24px; overflow: hidden; background: var(--ws-bg, #f6f6f9); --ws-ink: #1a1b1f; }
+  #fitsearch.ws-tile { --ws-bg: rgb(246 246 251); }
+  #caimber.ws-tile { --ws-bg: rgb(247 248 251); }
+  #chat-gifs.ws-tile { --ws-bg: rgb(248 248 249); }
+  #apple.ws-tile { --ws-bg: rgb(242 242 243); }
+  #entertainment-space.ws-tile { --ws-bg: rgb(30 29 28); --ws-ink: #f4f4f6; }
+  #thryft.ws-tile { --ws-bg: rgb(31 30 31); --ws-ink: #f4f4f6; }
+  .ws-media { display: contents; }
+  .ws-logo-row { order: 1; position: static !important; top: auto !important; left: auto !important; padding: 16px 16px 0; min-height: 46px; box-sizing: content-box; }
+  .ws-body { order: 2; display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; padding: 0 16px 8px !important; }
+  .ws-media > img:not(.ws-logo) { order: 3; display: block; width: 100%; height: auto; border-radius: 0 !important; transform: none !important;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 56px); mask-image: linear-gradient(to bottom, transparent 0, #000 56px); }
+  .ws-cta { margin-top: 0 !important; }
+  .ws-title { margin: 0 !important; font-family: "Schibsted Grotesk", "Avenir Next", Avenir, "Helvetica Neue", sans-serif !important; font-weight: 800 !important; font-size: 22px !important; line-height: 1.14 !important; letter-spacing: -.02em !important; color: var(--ws-ink) !important; }
+  .ws-cta { width: auto !important; align-self: flex-start; height: 44px; box-sizing: border-box; padding: 6px 18px 6px 20px !important; border-radius: 2px 22px 22px 22px !important; font-size: 12px !important; color: var(--ws-ink) !important; } /* 12px: same as the featured cards' button text */
+  #entertainment-space .ws-cta, #thryft .ws-cta { border-color: rgba(255,255,255,.35) !important; }
+  #entertainment-space .ws-cta img, #thryft .ws-cta img { filter: invert(1); }
+}
+
+/* Phones: the first section's "overview" label is dropped on every project page (the other section labels stay) */
+@media screen and (max-width: 767px) {
+  .div-block-40 > .link-block-7.context-tag { display: none !important; } /* the first section's label only (.overview-2 is shared by later labels too) */
+}
+
+/* Phones: section labels on every project page take the claims case study's chapter-marker treatment:
+   a count (01, 02… after the hidden "overview"), a faint divider, then the name in uppercase mono, all in the teal */
+@media screen and (max-width: 767px) {
+  body { counter-reset: sec-label; }
+  .link-block-7.context-tag .div-block-42 { counter-increment: sec-label; gap: 0 !important; }
+  .div-block-40 > .link-block-7.context-tag .div-block-42 { counter-increment: none; } /* the hidden first label is not counted */
+  .link-block-7.context-tag .div-block-42 img { display: none !important; }
+  .link-block-7.context-tag .div-block-42::before {
+    content: counter(sec-label, decimal-leading-zero);
+    font: 500 21px/1.2 "IBM Plex Mono", ui-monospace, Menlo, monospace; letter-spacing: 0; color: var(--label-color);
+    padding-right: 10px; margin-right: 10px; border-right: 1px solid color-mix(in srgb, var(--label-color) 45%, transparent);
+  }
+  .link-block-7.context-tag .text-block-8 {
+    font: 400 13px/1.6 "IBM Plex Mono", ui-monospace, Menlo, monospace !important; letter-spacing: .06em !important;
+    text-transform: uppercase !important; color: var(--label-color) !important;
+  }
+}
+
+/* Phones: a little breathing room between the header bar and each project page's logo / year row */
+@media screen and (max-width: 767px) {
+  .div-block-23 { padding-top: 24px !important; }
+}
+
+/* Each project page's phone section labels ("01 | label") take that project's brand color; desktop labels stay black */
+html { --label-color: #0097a7; }
+html[data-page="wellness-picture.html"] { --label-color: #3f7d3a; }        /* plant green */
+html[data-page="truetoform-scan-app.html"] { --label-color: #684cf6; }     /* TrueToForm violet */
+html[data-page="fitsearch-by-truetoform.html"] { --label-color: #0f9a34; } /* FitSearch green, a shade deeper for small text */
+html[data-page="play-movies-tv-ios-revamp.html"] { --label-color: #e52c7d; } /* Play Movies pink (dark page) */
+html[data-page="caimber.html"] { --label-color: #6a8a14; }                 /* Caimber green, deepened for small text */
+html[data-page="google-entertainment-space.html"] { --label-color: #fbbc04; } /* Google yellow (dark page) */
+html[data-page="google-chat-gif-integration.html"] { --label-color: #00923c; } /* Google Chat green, deepened */
+html[data-page="apple-music.html"] { --label-color: #e8344a; }             /* Apple Music red */
+html[data-page="thryft.html"] { --label-color: #1fbf62; }                  /* Thryft green (dark page) */
+/* brand color on phones only; desktop keeps the plain black labels (light on the dark pages) */
+@media screen and (max-width: 767px) { .link-block-7.context-tag .text-block-8 { color: var(--label-color) !important; } }
