@@ -1062,12 +1062,14 @@ html[data-page="thryft.html"] { --label-color: #1fbf62; }                  /* Th
 .hero-eyebrow { font-family: Avenirltstd, Avenir, "Helvetica Neue", sans-serif !important; font-weight: 500 !important; }
 
 /* Wellness card button: the default #cdd0d6 stroke washes out on the peach cover, so it gets a warm taupe that reads there (hover stays teal) */
-a.link-block-8[href="wellness-picture.html"] { border-color: #a99f94; }
+a.link-block-8[href="wellness-picture.html"] { border-color: #d6cdc2; } /* light warm-beige stroke on the beige-to-white cover */
+#sondermind .link-block-8.sondermind:hover { border-color: #ea6543; }
+#sondermind .link-block-8.sondermind:active { background-color: #ea6543; }
 #sondermind-rcm .link-block-8 { border-color: #92a89b; } /* sage stroke on the mint card, same depth as the Wellness one */
 
 /* Wellness card (#sondermind) headline: a deep forest pine green that holds up on the peach cover (claims card keeps the teal) */
-#sondermind .h1.ttf.sondermind { background-image: linear-gradient(#087453, #087453); } /* solid green (no gradient) */
-#sondermind-rcm .h1.ttf.sondermind { background-image: linear-gradient(#006b58, #006b58); } /* Claims card headline: solid deep teal-green */
+#sondermind .h1.ttf.sondermind { background-image: linear-gradient(#0d0c0e, #0d0c0e); } /* Wellness card headline: black on the light beige photo cover */
+#sondermind-rcm .h1.ttf.sondermind { background-image: linear-gradient(#0d0c0e, #0d0c0e); } /* Claims card headline: black */
 
 /* ===========================================================================
    Type system (Portfolio Type Sheet v2): every text style on the site maps to one of twelve styles.
