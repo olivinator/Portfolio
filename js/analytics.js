@@ -43,6 +43,8 @@
     }
   }, true);
 
+  function protoName(f) { return (f.getAttribute('src') || '').replace(/^.*prototypes\//, '').replace(/\.html/, ''); }
+
   // Embedded prototypes (Claims page): clicking into an iframe moves focus out of the page, so a window blur
   // with an iframe as the active element means someone started using that prototype. Counted once per prototype per visit.
   var seen = {};
@@ -50,10 +52,67 @@
     setTimeout(function () {
       var f = document.activeElement;
       if (!f || f.tagName !== 'IFRAME') return;
-      var src = (f.getAttribute('src') || '').replace(/^.*prototypes\//, '').replace(/\.html/, '');
+      var src = protoName(f);
       if (!src || seen[src]) return;
       seen[src] = true;
       gtag('event', 'prototype_interact', { prototype: src, page: page() });
     }, 0);
   });
+
+  // Case-study reading depth: one section_view per section the visitor reaches (its top passes 60% of the way up the
+  // window), named like the sticky section labels. The Claims page marks sections with data-vtag; the other case studies
+  // with a context tag at the start of each section. The homepage has neither, so nothing is sent there.
+  function trackSections() {
+    var secs = [].slice.call(document.querySelectorAll('[data-vtag]')).map(function (s) { return { el: s, name: s.getAttribute('data-vtag') }; });
+    if (!secs.length) secs = [].slice.call(document.querySelectorAll('.link-block-7.context-tag')).map(function (t) {
+      var label = t.querySelector('.text-block-8') || t; return { el: t.parentElement, name: label.textContent.trim().toLowerCase() };
+    });
+    if (!secs.length || !('IntersectionObserver' in window)) return;
+    var total = secs.length;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        var i = secs.findIndex(function (s) { return s.el === e.target; });
+        gtag('event', 'section_view', { section: secs[i].name, section_number: i + 1, total_sections: total, page: page() });
+      });
+    }, { rootMargin: '0px 0px -40% 0px' });
+    secs.forEach(function (s) { io.observe(s.el); });
+  }
+
+  // Time with prototypes: active seconds per embedded prototype. Activity inside the prototype (moving, clicking, scrolling,
+  // typing) counts; a pause longer than 5 seconds counts as idle. The prototypes are on the same site, so their pages can be
+  // listened to directly. Totals are sent as prototype_time when the visitor leaves or switches tabs (only new time each send).
+  var IDLE = 5000, active = {}, sent = {}, last = {};
+  function hookProto(f) {
+    var name = protoName(f); if (!name) return;
+    function on() {
+      var now = Date.now(), gap = last[name] ? now - last[name] : 0;
+      if (gap > 0 && gap <= IDLE && !document.hidden) active[name] = (active[name] || 0) + gap;
+      last[name] = now;
+    }
+    function attach() {
+      var d; try { d = f.contentDocument; } catch (e) { return; }
+      if (!d || !d.documentElement || d.documentElement.dataset.gaHooked) return;
+      d.documentElement.dataset.gaHooked = '1';
+      ['pointermove', 'pointerdown', 'wheel', 'keydown', 'touchstart', 'scroll'].forEach(function (t) { d.addEventListener(t, on, { passive: true, capture: true }); });
+    }
+    f.addEventListener('load', attach); attach();
+  }
+  function flush() {
+    Object.keys(active).forEach(function (name) {
+      var secs = Math.round(active[name] / 1000) - (sent[name] || 0);
+      if (secs < 1) return;
+      sent[name] = (sent[name] || 0) + secs;
+      gtag('event', 'prototype_time', { prototype: name, engaged_seconds: secs, page: page(), transport_type: 'beacon' });
+    });
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+  window.addEventListener('pagehide', flush);
+
+  function start() {
+    trackSections();
+    [].forEach.call(document.querySelectorAll('iframe[src*="prototypes/"]'), hookProto);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
