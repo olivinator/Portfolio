@@ -58,7 +58,7 @@ document.querySelectorAll('.sticky-tag-top').forEach(function (tag) {
     return '<div class="frame-1480 footer' + (home ? ' home' : '') + '"><div class="frame-1481"><div class="div-block-39">' +
       '<h1 class="footer-header">Let&#x27;s Talk design</h1><img src="images/659073d7ff63da989b596d53_arrow-right.svg" loading="lazy" alt="" class="image-16 white"/></div>' +
       '<ul role="list" class="list w-list-unstyled">' +
-      '<li class="list-item-3"><a href="mailto:olivia.r.hadley@gmail.com" class="link-block light w-inline-block"><img src="images/659070c55237cf2d0b7751c5_Vectors-Wrapper.svg" loading="lazy" width="17.111112594604492" height="14" alt="" class="vectors-wrapper-7 light"/></a></li>' +
+      '<li class="list-item-3"><a href="' + (window.ohMail ? 'mailto:' + window.ohMail() : '#') + '" data-mail class="link-block light w-inline-block"><img src="images/659070c55237cf2d0b7751c5_Vectors-Wrapper.svg" loading="lazy" width="17.111112594604492" height="14" alt="" class="vectors-wrapper-7 light"/></a></li>' +
       '<li class="list-item"><a href="https://www.linkedin.com/in/olivia-hadley-b0040872/" target="_blank" class="link-block light w-inline-block"><img src="images/659070c6ef55cf400e300f22_Vectors-Wrapper.svg" loading="lazy" width="16" height="16" alt="" class="vectors-wrapper-8 light"/></a></li>' +
       '</ul><div class="footer-text copy-wrigth">' + COPYRIGHT + '</div></div></div>';
   }
