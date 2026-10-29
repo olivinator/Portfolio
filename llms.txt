@@ -4,19 +4,19 @@
 
 ## Featured case studies
 
-- [Claims Operations Rebuild (SonderMind, 2026)](https://olivia-hadley.com/claims-service-case-study.html): 42,000 problematic claims and $100Ks in lost revenue. Lead product designer with no dedicated PM; mapped the claim across RevOps, care coordination, engineering and partnerships, then designed AI code recommendations for providers (reached dev handoff) and a RevOps work-queue admin portal (tested prototype).
-- [Wellness Picture (SonderMind, 2026)](https://olivia-hadley.com/wellness-picture.html): a 0-to-1 consumer health feature giving a clinical wellness methodology a face, with data visualization, AI-assisted UX and a launch built to validate it safely.
-- [TrueToForm iOS Scan App (2021)](https://olivia-hadley.com/truetoform-scan-app.html): raised the 3D body-scan success rate from 50% to 96% through flow optimization, onboarding and guidance, usability research and metric-driven iteration.
-- [Google Play Movies & TV for iOS (Google, 2019)](https://olivia-hadley.com/play-movies-tv-ios-revamp.html): 1% of users drove 8% of all playback; led the iOS redesign around watching, not buying, covering design leadership, product strategy and information architecture.
+- [Claims Operations Rebuild (SonderMind, 2026)](https://olivia-hadley.com/claims-service-case-study): 42,000 problematic claims and $100Ks in lost revenue. Lead product designer with no dedicated PM; mapped the claim across RevOps, care coordination, engineering and partnerships, then designed AI code recommendations for providers (reached dev handoff) and a RevOps work-queue admin portal (tested prototype).
+- [Wellness Picture (SonderMind, 2026)](https://olivia-hadley.com/wellness-picture): a 0-to-1 consumer health feature giving a clinical wellness methodology a face, with data visualization, AI-assisted UX and a launch built to validate it safely.
+- [TrueToForm iOS Scan App (2021)](https://olivia-hadley.com/truetoform-scan-app): raised the 3D body-scan success rate from 50% to 96% through flow optimization, onboarding and guidance, usability research and metric-driven iteration.
+- [Google Play Movies & TV for iOS (Google, 2019)](https://olivia-hadley.com/play-movies-tv-ios-revamp): 1% of users drove 8% of all playback; led the iOS redesign around watching, not buying, covering design leadership, product strategy and information architecture.
 
 ## More work
 
-- [FitSearch by TrueToForm (2022)](https://olivia-hadley.com/fitsearch-by-truetoform.html): from idea to launch, a marketplace where clothes are found by your measurements, not your size.
-- [Caimber (2023)](https://olivia-hadley.com/caimber.html): turned a rough K-5 reading and fluency prototype into a polished demo for an education summit in two months.
-- [Google Entertainment Space (Google, 2020)](https://olivia-hadley.com/google-entertainment-space.html): contributed the reading and gaming action sets to a new Android tablet entertainment center.
-- [Google Chat GIF integration (Google, 2017)](https://olivia-hadley.com/google-chat-gif-integration.html): brought GIF expression to team communication.
-- [Thryft (2022)](https://olivia-hadley.com/thryft.html): from a CEO's first idea to a full product for procurement managers (password-protected case study).
-- [Apple Music (Apple, 2016–2017)](https://olivia-hadley.com/apple-music.html): internal tools that streamline playlist art design and curation.
+- [FitSearch by TrueToForm (2022)](https://olivia-hadley.com/fitsearch-by-truetoform): from idea to launch, a marketplace where clothes are found by your measurements, not your size.
+- [Caimber (2023)](https://olivia-hadley.com/caimber): turned a rough K-5 reading and fluency prototype into a polished demo for an education summit in two months.
+- [Google Entertainment Space (Google, 2020)](https://olivia-hadley.com/google-entertainment-space): contributed the reading and gaming action sets to a new Android tablet entertainment center.
+- [Google Chat GIF integration (Google, 2017)](https://olivia-hadley.com/google-chat-gif-integration): brought GIF expression to team communication.
+- [Thryft (2022)](https://olivia-hadley.com/thryft): from a CEO's first idea to a full product for procurement managers (password-protected case study).
+- [Apple Music (Apple, 2016–2017)](https://olivia-hadley.com/apple-music): internal tools that streamline playlist art design and curation.
 
 ## Contact
 

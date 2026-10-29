@@ -2,7 +2,9 @@
 // Loaded at the end of every page, after jQuery and webflow.js.
 
 // Tag the page by its filename so per-page styles (e.g. each project's brand color) can key off it
-document.documentElement.setAttribute('data-page', location.pathname.split('/').pop() || 'index.html');
+// Pages are linked without ".html" (olivia-hadley.com/caimber); the per-page styles still key off the file name.
+var OH_PAGE = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '');
+document.documentElement.setAttribute('data-page', OH_PAGE + '.html');
 
 // "top" tag: smooth-scroll back to the top of the page on every page,
 // whether or not that page has a #top anchor.
@@ -25,22 +27,22 @@ document.querySelectorAll('.sticky-tag-top').forEach(function (tag) {
   var COPYRIGHT = '© 2026 Olivia Hadley | Last updated Oct 2026';
   var slots = document.querySelectorAll('[data-site-footer]');
   if (!slots.length) return;
-  var here = location.pathname.split('/').pop() || 'index.html';
+  var here = OH_PAGE;
   // Project lists: [page, name, year, cover image, (unused span from the old bento layout)]
   var P = 'images/';
   var featured = [
-    ['claims-service-case-study.html', 'SonderMind Claims Service', '2026', 'claims-cover-r11-p-1080.jpg', 5],
-    ['wellness-picture.html', 'SonderMind Wellness Picture', '2026', 'wp-cover-r16-p-1080.jpg', 7],
-    ['truetoform-scan-app.html', 'TrueToForm iOS Scan App', '2021', '65b5711be460af631de91a63_Scan-app-no-text-p-1080.jpg', 5],
-    ['play-movies-tv-ios-revamp.html', 'Google Play Movies & TV for iOS', '2019', '65b5711c32335b4b3146c0bc_MT-V-1-p-1080.jpg', 7]
+    ['claims-service-case-study', 'SonderMind Claims Service', '2026', 'claims-cover-r11-p-1080.jpg', 5],
+    ['wellness-picture', 'SonderMind Wellness Picture', '2026', 'wp-cover-r16-p-1080.jpg', 7],
+    ['truetoform-scan-app', 'TrueToForm iOS Scan App', '2021', '65b5711be460af631de91a63_Scan-app-no-text-p-1080.jpg', 5],
+    ['play-movies-tv-ios-revamp', 'Google Play Movies & TV for iOS', '2019', '65b5711c32335b4b3146c0bc_MT-V-1-p-1080.jpg', 7]
   ];
   var bonus = [
-    ['fitsearch-by-truetoform.html', 'FitSearch by TrueToForm', '2022', '65b5711c1cd5394f50a0ef35_Fitsearch-no-text-p-800.jpg', 4],
-    ['caimber.html', 'Caimber', '2023', '65b5711b17c3ad76b1c133c2_Caimber-p-800.jpg', 3],
-    ['google-entertainment-space.html', 'Google Entertainment Space', '2020', '65b5711c3061e1aff3be74bf_MT-V-2-p-800.jpg', 5],
-    ['google-chat-gif-integration.html', 'Google Chat GIF integration', '2017', '65b5711c349765854a7daac2_MT-V-3-p-800.jpg', 5],
-    ['thryft.html', 'Thryft', '2022', '65b5711cfe1ff665b821657b_Thryft-p-800.jpg', 3],
-    ['apple-music.html', 'Apple Music', '2016 - 2017', '65b99f6ff4deef0bcaaf5c2e_apple-p-800.jpg', 4]
+    ['fitsearch-by-truetoform', 'FitSearch by TrueToForm', '2022', '65b5711c1cd5394f50a0ef35_Fitsearch-no-text-p-800.jpg', 4],
+    ['caimber', 'Caimber', '2023', '65b5711b17c3ad76b1c133c2_Caimber-p-800.jpg', 3],
+    ['google-entertainment-space', 'Google Entertainment Space', '2020', '65b5711c3061e1aff3be74bf_MT-V-2-p-800.jpg', 5],
+    ['google-chat-gif-integration', 'Google Chat GIF integration', '2017', '65b5711c349765854a7daac2_MT-V-3-p-800.jpg', 5],
+    ['thryft', 'Thryft', '2022', '65b5711cfe1ff665b821657b_Thryft-p-800.jpg', 3],
+    ['apple-music', 'Apple Music', '2016 - 2017', '65b99f6ff4deef0bcaaf5c2e_apple-p-800.jpg', 4]
   ];
   function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
   function tile(p) {

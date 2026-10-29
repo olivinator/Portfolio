@@ -1062,7 +1062,7 @@ html[data-page="thryft.html"] { --label-color: #1fbf62; }                  /* Th
 .hero-eyebrow { font-family: Avenirltstd, Avenir, "Helvetica Neue", sans-serif !important; font-weight: 500 !important; }
 
 /* Wellness card button: the default #cdd0d6 stroke washes out on the peach cover, so it gets a warm taupe that reads there (hover stays teal) */
-a.link-block-8[href="wellness-picture.html"] { border-color: #d6cdc2; } /* light warm-beige stroke on the beige-to-white cover */
+a.link-block-8[href^="wellness-picture"] { border-color: #d6cdc2; } /* light warm-beige stroke on the beige-to-white cover */
 #sondermind .link-block-8.sondermind:hover { border-color: #ea6543; }
 #sondermind .link-block-8.sondermind:active { background-color: #ea6543; }
 #sondermind-rcm .link-block-8 { border-color: #92a89b; } /* sage stroke on the mint card, same depth as the Wellness one */
@@ -1154,5 +1154,5 @@ h3.h2.sub-head, h3.h2.sub-head > strong, h3.ws-title { font-weight: 900 !importa
 .ws-cta { padding-top: 14.75px !important; padding-bottom: 13.25px !important; }
 @media screen and (max-width: 767px) { .ws-cta { padding-top: 7.5px !important; padding-bottom: 6px !important; } }
 /* Claims card button: its label (with the sparkle) sat ~1.7px high; nudge it down to center it */
-#sondermind-rcm .link-block-8, a.link-block-8[href="claims-service-case-study.html"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 13.85px !important; padding-bottom: 12.15px !important; }
-@media screen and (max-width: 767px) { #sondermind-rcm .link-block-8, a.link-block-8[href="claims-service-case-study.html"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 14.85px !important; padding-bottom: 13.15px !important; } }
+#sondermind-rcm .link-block-8, a.link-block-8[href^="claims-service-case-study"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 13.85px !important; padding-bottom: 12.15px !important; }
+@media screen and (max-width: 767px) { #sondermind-rcm .link-block-8, a.link-block-8[href^="claims-service-case-study"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 14.85px !important; padding-bottom: 13.15px !important; } }

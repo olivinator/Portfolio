@@ -15,7 +15,7 @@
   gtag('js', new Date());
   gtag('config', ID);
 
-  function page() { return location.pathname.split('/').pop() || 'index.html'; }
+  function page() { return (location.pathname.split('/').pop() || 'index').replace(/\.html$/, ''); }
   function where(el) {
     if (el.closest('.footer')) return 'footer';
     if (el.closest('.hdr-talk, .frame-11')) return 'header';
@@ -38,7 +38,7 @@
     // Project cards: featured cards and bonus tiles on the homepage, and the footer project list on every page
     var placement = a.closest('.ws-tile') ? 'bonus' : a.closest('.freelance-content > .frame-10') ? 'featured' :
       a.classList.contains('fb-row') ? 'footer' : null;
-    if (placement && /\.html$/.test(href)) {
+    if (placement && /^[a-z0-9-]+(\.html)?$/.test(href)) {
       gtag('event', 'select_project', { project: href.replace(/\.html$/, ''), placement: placement, page: page() });
     }
   }, true);
