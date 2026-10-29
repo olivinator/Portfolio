@@ -20,4 +20,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://www.olivia-hadley.com/sitemap.xml
+Sitemap: https://olivia-hadley.com/sitemap.xml
