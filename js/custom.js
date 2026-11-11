@@ -24,7 +24,7 @@ document.querySelectorAll('.sticky-tag-top').forEach(function (tag) {
 // contact block, since its project cards sit right above). Edit the footer here and it changes everywhere.
 // Runs before the pages' inline scripts, so the email tooltip and header-on-dark scripts find it.
 (function () {
-  var COPYRIGHT = '© 2026 Olivia Hadley | Last updated Oct 2026';
+  var COPYRIGHT = '© 2026 Olivia Hadley | Last updated Nov 2026';
   var slots = document.querySelectorAll('[data-site-footer]');
   if (!slots.length) return;
   var here = OH_PAGE;

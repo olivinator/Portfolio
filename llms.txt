@@ -4,7 +4,7 @@
 
 ## Featured case studies
 
-- [Claims Operations Rebuild (SonderMind, 2026)](https://olivia-hadley.com/claims-service-case-study): 42,000 problematic claims and $100Ks in lost revenue. Lead product designer with no dedicated PM; mapped the claim across RevOps, care coordination, engineering and partnerships, then designed AI code recommendations for providers (reached dev handoff) and a RevOps work-queue admin portal (tested prototype).
+- [Claims Operations Rebuild (SonderMind, 2026)](https://olivia-hadley.com/claims-service-case-study): 42,000 problematic claims and $100Ks in lost revenue. Lead product designer with no dedicated PM; mapped the claim across RevOps, care coordination, engineering and partnerships, then designed AI code recommendations for providers (reached dev handoff), a RevOps work-queue admin portal (tested prototype, superseded by a tool the RevOps manager built) and a pattern-to-rule learning loop (prioritized for a future quarter, not launched).
 - [Wellness Picture (SonderMind, 2026)](https://olivia-hadley.com/wellness-picture): a 0-to-1 consumer health feature giving a clinical wellness methodology a face, with data visualization, AI-assisted UX and a launch built to validate it safely.
 - [TrueToForm iOS Scan App (2021)](https://olivia-hadley.com/truetoform-scan-app): raised the 3D body-scan success rate from 50% to 96% through flow optimization, onboarding and guidance, usability research and metric-driven iteration.
 - [Google Play Movies & TV for iOS (Google, 2019)](https://olivia-hadley.com/play-movies-tv-ios-revamp): 1% of users drove 8% of all playback; led the iOS redesign around watching, not buying, covering design leadership, product strategy and information architecture.

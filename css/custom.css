@@ -1156,3 +1156,23 @@ h3.h2.sub-head, h3.h2.sub-head > strong, h3.ws-title { font-weight: 900 !importa
 /* Claims card button: its label (with the sparkle) sat ~1.7px high; nudge it down to center it */
 #sondermind-rcm .link-block-8, a.link-block-8[href^="claims-service-case-study"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 13.85px !important; padding-bottom: 12.15px !important; }
 @media screen and (max-width: 767px) { #sondermind-rcm .link-block-8, a.link-block-8[href^="claims-service-case-study"], a.link-block-8[href="#sondermind-rcm"] { padding-top: 14.85px !important; padding-bottom: 13.15px !important; } }
+
+/* Project-page overview facts (My role / Team / Outcome or Status): same type as the Claims page's overview —
+   labels in Schibsted Grotesk 16px bold, sentence case, near-black; values in the body face at 16/25.6 */
+html:not(#oh-x) body .cell > h5.h4 { font-family: "Schibsted Grotesk", "Avenir Next", Arial, sans-serif !important; font-size: 16px !important; font-weight: 700 !important; line-height: 21.6px !important; letter-spacing: -0.2px !important; text-transform: none !important; color: #1a1b1f !important; }
+html:not(#oh-x) body .cell > h5.h4 + p.p2 { color: #1f2433 !important; line-height: 25.6px !important; }
+
+/* Product-screen shadows on the case studies match the Claims page's screens (a soft, layered shadow falling down and to the
+   left); on hover they deepen to the Claims page's lifted-card shadow */
+html body .shot-lift, html body img.image-36.shot-lift { box-shadow: -2px 3px 7px rgba(0,0,0,.04), -9px 10px 14px rgba(0,0,0,.04), -19px 24px 18px rgba(0,0,0,.02), -34px 42px 22px rgba(0,0,0,.01) !important; }
+@media (hover: hover) { html body .shot-lift:hover, html body img.image-36.shot-lift:hover { box-shadow: -2px 4px 9px rgba(0,0,0,.04), -6px 16px 17px rgba(0,0,0,.04), -14px 35px 23px rgba(0,0,0,.02), -25px 62px 27px rgba(0,0,0,.01) !important; } }
+
+/* Logo/year divider on dark-theme case studies (was 20% black, invisible on the dark ground) */
+html body.theme-dark .cs-logo-row .card-year { border-left-color: rgb(255 255 255 / .28) !important; }
+
+/* Overview facts on dark-theme case studies: same Claims type, in the dark page's own colors (heading white, body grey) */
+html:not(#oh-x) body.theme-dark .cell > h5.h4 { color: #f4f4f6 !important; }
+html:not(#oh-x) body.theme-dark .cell > h5.h4 + p.p2 { color: #c9cbd3 !important; }
+
+/* Footer copyright line: white on the dark footer (on light pages it had picked up the muted near-black label color) */
+html:not(#oh-x) body .footer-text.copy-wrigth { color: #fff !important; }
