@@ -1176,3 +1176,16 @@ html:not(#oh-x) body.theme-dark .cell > h5.h4 + p.p2 { color: #c9cbd3 !important
 
 /* Footer copyright line: white on the dark footer (on light pages it had picked up the muted near-black label color) */
 html:not(#oh-x) body .footer-text.copy-wrigth { color: #fff !important; }
+
+/* No page scrolls sideways: anything wider than the screen is clipped. "clip" (unlike "hidden") keeps the sticky header and section tags working */
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+
+/* Phones: project-page section labels match the Claims case study and the home page: a small down arrow, then the name in
+   regular type (black; light on the dark pages). Replaces the numbered "02 | PROCESS" brand-color marker */
+@media screen and (max-width: 767px) {
+  html body .link-block-7.context-tag .div-block-42 { counter-increment: none !important; gap: 8px !important; align-items: center !important; }
+  html body .link-block-7.context-tag .div-block-42::before { content: none !important; display: none !important; }
+  html body .link-block-7.context-tag .div-block-42 img { display: block !important; order: -1; width: 5px !important; height: 18px !important; transform: none !important; }
+  html body .link-block-7.context-tag .text-block-8 { font: 400 16px/20px "Avenirltstd Roman", "Avenir Next", Avenir, "Helvetica Neue", sans-serif !important; letter-spacing: .48px !important; text-transform: none !important; color: #0d0c0e !important; }
+  html body.theme-dark .link-block-7.context-tag .text-block-8 { color: #e9eaee !important; }
+}
