@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Wellness — Scale Breakdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Inclusive+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-1: #004455;
+    --neutral-20: #dbd7d3;
+    --neutral-60: #6a6661;
+    --neutral-80: #453f39;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+  body {
+    font-family: 'Inclusive Sans', sans-serif;
+    background: #e8e4e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .phone {
+    position: relative;
+    width: 393px;
+    height: 852px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background: linear-gradient(1.4deg, rgb(246,243,238) 86.64%, rgb(247,245,245) 95.21%);
+  }
+
+  /* Same progressive-blur status bar as the other pages */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 14px 24px 0;
+    z-index: 20;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .status-blur-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .status-blur-layer.layer-1 {
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+  }
+  .status-blur-layer.layer-2 {
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+  }
+  .status-blur-layer.layer-3 {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+  }
+  .status-bar .time, .status-bar .status-icons { position: relative; z-index: 1; }
+  .status-bar .time { font-weight: 600; font-size: 15px; color: #0c3b4a; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px 4px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    border-radius: 60px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.45);
+    cursor: pointer;
+    border: none;
+  }
+  .back-btn img { width: 24px; height: 24px; }
+
+  .scroll-body {
+    height: 852px;
+    padding-top: 44px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-body::-webkit-scrollbar { display: none; }
+
+  .title-block { padding: 24px 16px 0; }
+  .title-row { display: flex; align-items: center; gap: 8px; }
+  .title-row img.favorite { width: 48px; height: 48px; }
+  .title-row span { font-size: 20px; line-height: 24px; color: var(--neutral-60); }
+
+  .page-title {
+    padding: 0 24px;
+    margin-top: 16px;
+    text-align: left;
+  }
+  .page-title h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 64px;
+    color: var(--brand-1);
+  }
+
+  /* ---- vertical timeline ---- */
+  .timeline { padding: 40px 24px 60px 32px; }
+  .timeline-row {
+    display: flex;
+    align-items: stretch; /* lets the marker column match its content's full height, so the connecting line has space to fill */
+    gap: 24px;
+  }
+  .timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 16px;
+    flex-shrink: 0;
+  }
+  /* Vertically centered against the adjacent state-name text (24px/28px line-height) */
+  .timeline-marker .dot-active { width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; }
+  .timeline-marker .dot-filled { width: 12px; height: 12px; flex-shrink: 0; }
+  .timeline-marker .line {
+    background: var(--brand-1);
+    width: 4px;
+    flex: 1 0 0;
+    min-height: 0;
+  }
+  /* Fills the centering offset above a small dot with an actual line segment, instead of empty margin, so the connector reads as continuous */
+  .timeline-marker .line-top {
+    background: var(--brand-1);
+    width: 4px;
+    height: 8px;
+    flex-shrink: 0;
+  }
+  /* Rows above the active/current dot represent states not yet reached
+     (the scale reads bottom-to-top ascending), so their dot + connecting
+     lines use neutral-20 instead of brand-1, matching the rows below/at
+     the active dot which stay teal ("already passed"). */
+  .timeline-marker .line.is-upcoming,
+  .timeline-marker .line-top.is-upcoming { background: var(--neutral-20); }
+  .timeline-content {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 48px;
+    min-width: 0;
+  }
+  .timeline-row.is-last .timeline-content { padding-bottom: 8px; }
+  .timeline-content .state-name {
+    font-size: 24px;
+    line-height: 28px;
+    color: var(--brand-1);
+  }
+  .glance-block { display: flex; flex-direction: column; gap: 6px; }
+  .glance-block .at-a-glance { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .glance-block .description { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+  .feel-like-block { display: flex; flex-direction: column; gap: 4px; }
+  .feel-like-block .label { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .feel-like-block .quote { font-size: 16px; line-height: 24px; font-weight: 700; color: var(--neutral-80); }
+
+  /* ---- page entrance: slides in from the right, matching the detail page's content animation ---- */
+  @keyframes pageEnterContent {
+    0%   { transform: translateX(48px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .page-enter-content {
+    animation: pageEnterContent 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .home-indicator-wrapper {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+    background: transparent;
+    pointer-events: none;
+  }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #0c3b4a;
+    opacity: 0.2;
+    border-radius: 100px;
+  }
+</style>
+<script>document.documentElement.classList.add(window.self!==window.top?'embedded':'standalone')</script>
+<style>/* embedded in the case study */html.embedded,html.embedded body{background:transparent!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;display:block!important;overflow:hidden!important}html.embedded .phone{box-shadow:none!important;margin:0!important;border-radius:0!important}</style>
+<style id="standalone-view">
+  /* Opened in its own tab: the phone sits centered with space above it, rounded corners and a soft shadow, and the page scrolls on short windows */
+  html.standalone body{align-items:flex-start!important;justify-content:center!important;padding:48px 16px 64px!important;overflow:auto!important;min-height:100vh;box-sizing:border-box}
+  html.standalone .phone{border-radius:44px!important;overflow:hidden!important;box-shadow:0 30px 60px -30px rgba(20,30,50,.45),0 4px 14px rgba(20,30,50,.08)!important;flex:none}
+  html.standalone,html.standalone body{overflow-x:hidden!important}
+</style>
+<script>
+/* Standalone tab on a narrow screen: shrink the 393px phone to fit, so there is no sideways scroll */
+(function(){if(window.self!==window.top)return;function fit(){var ph=document.querySelector('.phone');if(!ph)return;var k=Math.min(1,(document.documentElement.clientWidth-32)/393);ph.style.zoom=k<1?k:'';}
+document.addEventListener('DOMContentLoaded',fit);addEventListener('resize',fit);})();
+</script>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <div class="status-blur-layer layer-1"></div>
+    <div class="status-blur-layer layer-2"></div>
+    <div class="status-blur-layer layer-3"></div>
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <img src="figma-assets/ios-signal.svg" alt="">
+      <img src="figma-assets/ios-wifi.svg" alt="">
+      <img src="figma-assets/ios-battery.svg" alt="">
+    </div>
+  </div>
+
+  <div class="scroll-body">
+    <div class="app-header">
+      <button class="back-btn" onclick="window.location.href = new URLSearchParams(location.search).get('from') === 'tabs' ? 'lotus.html?pillar=social' : 'pillar-detail-social.html'"><img src="figma-assets/detail-back-arrow.svg" alt="back"></button>
+    </div>
+
+    <div class="page-enter-content">
+    <div class="title-block">
+      <div class="title-row">
+        <img class="favorite" data-pillar-icon="social" alt="">
+        <span>Social Wellness Pillar</span>
+      </div>
+    </div>
+
+    <div class="page-title">
+      <h1>Scale Breakdown</h1>
+    </div>
+
+    <div class="timeline" data-pillar-scale="social" data-scale-type="breakdown">
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line is-upcoming"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Flourishing</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Connection as a source of strength</p>
+            <p class="description">Connection feels like a genuine source of strength. You know who your people are, what kind of relationship nourishes you, and you're able to show up for others without losing yourself in the process.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You know who your people are and what kind of relationship nourishes you. You're able to show up for others without losing yourself in the process.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top is-upcoming"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line is-upcoming"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Thriving</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Relationships that feel mutual</p>
+            <p class="description">Your relationships feel meaningful and mutual. You have people you can be honest with, and connection generally leaves you feeling better rather than depleted. You're getting better at recognizing what you need socially and asking for it.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You have people you can be honest with, and connection generally leaves you feeling better rather than depleted. You're getting better at recognizing what you need socially and asking for it.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top is-upcoming"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line is-upcoming"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Growing</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Learning what connection actually helps</p>
+            <p class="description">You're becoming more aware of what kinds of connection actually restore you versus which ones leave you feeling empty. You're putting more intention into your relationships, even if it's still a work in progress.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You're becoming more aware of what restores you versus what leaves you empty, and you're putting more intention into your relationships, even if it's still a work in progress.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top is-upcoming"></div>
+          <img class="dot-active" src="figma-assets/scale-timeline-dot-active.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Emerging</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Connection that's inconsistent</p>
+            <p class="description">There are moments of genuine connection, but they feel inconsistent or hard to hold onto. You might want more depth in your relationships but not quite know how to get there, or feel like some connections are starting to mean more than others.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You want more depth in your relationships but don't quite know how to get there. Some connections are starting to mean more than others. You're just not sure which ones yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row is-last">
+        <div class="timeline-marker">
+          <div class="line-top"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Needs Care</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Connection feels distant or draining</p>
+            <p class="description">Connections feel surface-level or hard to reach right now. You might be around people and still feel alone, or find yourself avoiding the effort it takes to really connect. Relationships may feel draining more than restorative.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You might be around people and still feel alone, or you find yourself avoiding the effort it takes to really connect. Relationships feel more draining than restorative lately.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+
+  <div class="home-indicator-wrapper">
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<script src="figma-assets/pillar-data.js"></script>
+<script>
+  applyPillarIcons();
+  applyPillarScales();
+</script>
+</body>
+</html>

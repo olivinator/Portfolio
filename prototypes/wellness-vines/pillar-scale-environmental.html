@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Environmental Wellness — Scale Breakdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Inclusive+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-1: #004455;
+    --neutral-20: #dbd7d3;
+    --neutral-60: #6a6661;
+    --neutral-80: #453f39;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+  body {
+    font-family: 'Inclusive Sans', sans-serif;
+    background: #e8e4e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .phone {
+    position: relative;
+    width: 393px;
+    height: 852px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background: linear-gradient(1.4deg, rgb(246,243,238) 86.64%, rgb(247,245,245) 95.21%);
+  }
+
+  /* Same progressive-blur status bar as the other pages */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 14px 24px 0;
+    z-index: 20;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .status-blur-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .status-blur-layer.layer-1 {
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+  }
+  .status-blur-layer.layer-2 {
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+  }
+  .status-blur-layer.layer-3 {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+  }
+  .status-bar .time, .status-bar .status-icons { position: relative; z-index: 1; }
+  .status-bar .time { font-weight: 600; font-size: 15px; color: #0c3b4a; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px 4px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    border-radius: 60px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.45);
+    cursor: pointer;
+    border: none;
+  }
+  .back-btn img { width: 24px; height: 24px; }
+
+  .scroll-body {
+    height: 852px;
+    padding-top: 44px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-body::-webkit-scrollbar { display: none; }
+
+  .title-block { padding: 24px 16px 0; }
+  .title-row { display: flex; align-items: center; gap: 8px; }
+  .title-row img.favorite { width: 48px; height: 48px; }
+  .title-row span { font-size: 20px; line-height: 24px; color: var(--neutral-60); }
+
+  .page-title {
+    padding: 0 24px;
+    margin-top: 16px;
+    text-align: left;
+  }
+  .page-title h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 64px;
+    color: var(--brand-1);
+  }
+
+  /* ---- vertical timeline ---- */
+  .timeline { padding: 40px 24px 60px 32px; }
+  .timeline-row {
+    display: flex;
+    align-items: stretch; /* lets the marker column match its content's full height, so the connecting line has space to fill */
+    gap: 24px;
+  }
+  .timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 16px;
+    flex-shrink: 0;
+  }
+  /* Vertically centered against the adjacent state-name text (24px/28px line-height) */
+  .timeline-marker .dot-active { width: 24px; height: 24px; flex-shrink: 0; margin-top: 2px; }
+  .timeline-marker .dot-filled { width: 12px; height: 12px; flex-shrink: 0; }
+  /* No-data pillar: no current position to highlight, so dots and connecting
+     lines use neutral-20 instead of brand-1 the way has-data pillars do. */
+  .timeline-marker .line {
+    background: var(--neutral-20);
+    width: 4px;
+    flex: 1 0 0;
+    min-height: 0;
+  }
+  /* Fills the centering offset above a small dot with an actual line segment, instead of empty margin, so the connector reads as continuous */
+  .timeline-marker .line-top {
+    background: var(--neutral-20);
+    width: 4px;
+    height: 8px;
+    flex-shrink: 0;
+  }
+  .timeline-content {
+    flex: 1 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 48px;
+    min-width: 0;
+  }
+  .timeline-row.is-last .timeline-content { padding-bottom: 8px; }
+  .timeline-content .state-name {
+    font-size: 24px;
+    line-height: 28px;
+    color: var(--brand-1);
+  }
+  .glance-block { display: flex; flex-direction: column; gap: 6px; }
+  .glance-block .at-a-glance { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .glance-block .description { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+  .feel-like-block { display: flex; flex-direction: column; gap: 4px; }
+  .feel-like-block .label { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .feel-like-block .quote { font-size: 16px; line-height: 24px; font-weight: 700; color: var(--neutral-80); }
+
+  /* ---- page entrance: slides in from the right, matching the detail page's content animation ---- */
+  @keyframes pageEnterContent {
+    0%   { transform: translateX(48px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .page-enter-content {
+    animation: pageEnterContent 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .home-indicator-wrapper {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+    background: transparent;
+    pointer-events: none;
+  }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #0c3b4a;
+    opacity: 0.2;
+    border-radius: 100px;
+  }
+</style>
+<script>document.documentElement.classList.add(window.self!==window.top?'embedded':'standalone')</script>
+<style>/* embedded in the case study */html.embedded,html.embedded body{background:transparent!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;display:block!important;overflow:hidden!important}html.embedded .phone{box-shadow:none!important;margin:0!important;border-radius:0!important}</style>
+<style id="standalone-view">
+  /* Opened in its own tab: the phone sits centered with space above it, rounded corners and a soft shadow, and the page scrolls on short windows */
+  html.standalone body{align-items:flex-start!important;justify-content:center!important;padding:48px 16px 64px!important;overflow:auto!important;min-height:100vh;box-sizing:border-box}
+  html.standalone .phone{border-radius:44px!important;overflow:hidden!important;box-shadow:0 30px 60px -30px rgba(20,30,50,.45),0 4px 14px rgba(20,30,50,.08)!important;flex:none}
+  html.standalone,html.standalone body{overflow-x:hidden!important}
+</style>
+<script>
+/* Standalone tab on a narrow screen: shrink the 393px phone to fit, so there is no sideways scroll */
+(function(){if(window.self!==window.top)return;function fit(){var ph=document.querySelector('.phone');if(!ph)return;var k=Math.min(1,(document.documentElement.clientWidth-32)/393);ph.style.zoom=k<1?k:'';}
+document.addEventListener('DOMContentLoaded',fit);addEventListener('resize',fit);})();
+</script>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <div class="status-blur-layer layer-1"></div>
+    <div class="status-blur-layer layer-2"></div>
+    <div class="status-blur-layer layer-3"></div>
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <img src="figma-assets/ios-signal.svg" alt="">
+      <img src="figma-assets/ios-wifi.svg" alt="">
+      <img src="figma-assets/ios-battery.svg" alt="">
+    </div>
+  </div>
+
+  <div class="scroll-body">
+    <div class="app-header">
+      <button class="back-btn" onclick="window.location.href = new URLSearchParams(location.search).get('from') === 'tabs' ? 'lotus.html?pillar=environmental' : 'pillar-detail-environmental.html'"><img src="figma-assets/detail-back-arrow.svg" alt="back"></button>
+    </div>
+
+    <div class="page-enter-content">
+    <div class="title-block">
+      <div class="title-row">
+        <img class="favorite" data-pillar-icon="environmental" alt="">
+        <span>Environmental Wellness Pillar</span>
+      </div>
+    </div>
+
+    <div class="page-title">
+      <h1>Scale Breakdown</h1>
+    </div>
+
+    <div class="timeline" data-pillar-scale="environmental" data-scale-type="breakdown">
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Flourishing</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Environment as an active resource</p>
+            <p class="description">Your environment feels like an active resource. You know what you need from your spaces and you shape them accordingly. Light, time outdoors, and organized surroundings feel like genuine tools rather than nice-to-haves.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You know what you need from your spaces and you shape them accordingly. Light, time outdoors, and organized surroundings feel like real tools, not nice-to-haves.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Thriving</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Spaces that support daily function</p>
+            <p class="description">You've developed a real sense of what environmental conditions support you. You make regular choices that reflect this. Your spaces generally help you function, and you notice quickly when something is off.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You make regular choices that reflect this. Your spaces generally help you function, and you notice quickly when something is off.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Growing</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Shaping spaces with more intention</p>
+            <p class="description">The connection between your environment and your internal state is becoming clearer. You're starting to make intentional choices about your spaces, small adjustments that support focus, calm, or recovery, and noticing their effects.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">You're starting to make intentional choices about your spaces, small adjustments that support focus, calm, or recovery, and noticing their effects.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-marker">
+          <div class="line-top"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Emerging</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Noticing how spaces affect mood</p>
+            <p class="description">You're beginning to notice that certain spaces or conditions affect how you feel. There might be one change, like more natural light, time outside, or less clutter, that you've noticed makes a difference, even if it's not a consistent practice yet.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">There's one change, like more natural light, time outside, or less clutter, that you've noticed makes a difference, even if it's not a consistent practice yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-row is-last">
+        <div class="timeline-marker">
+          <div class="line-top"></div>
+          <img class="dot-filled" src="figma-assets/scale-timeline-dot-filled-neutral.svg" alt="">
+          <div class="line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="state-name">Needs Care</div>
+          <div class="glance-block">
+            <p class="at-a-glance">Surroundings quietly draining energy</p>
+            <p class="description">Your surroundings may be contributing to stress or depletion in ways that are hard to separate from how you're feeling generally. Noise, clutter, or lack of light and outdoor time might be quietly draining you, without an obvious connection to your mood.</p>
+          </div>
+          <div class="feel-like-block">
+            <p class="label">What this might feel like:</p>
+            <p class="quote">Noise, clutter, or lack of light and outdoor time might be quietly wearing on you, without an obvious connection to your mood.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+
+  <div class="home-indicator-wrapper">
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<script src="figma-assets/pillar-data.js"></script>
+<script>
+  applyPillarIcons();
+  applyPillarScales();
+</script>
+</body>
+</html>

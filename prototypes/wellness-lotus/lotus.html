@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pillar Tabs — POC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Inclusive+Sans:ital,wght@0,400;0,500;0,600;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+  :root {
+    --brand-1: #004455;
+    --teal-60: #007a84;
+    --sand-0: #f3eee9;
+    --sand-1: #fdfbf7;
+    --sand-2: #fffefd;
+    --neutral-15: #f0edeb;
+    --neutral-20: #dbd7d3;
+    --neutral-60: #6a6661;
+    --neutral-70: #57524d;
+    --neutral-80: #453f39;
+    --neutral-90: #332d26;
+    --text-default: #001219;
+    --tab-inactive: #d8d8d8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+  body {
+    font-family: 'Inclusive Sans', sans-serif;
+    background: #e8e4e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ---- phone shell (shared with the other pillar-detail prototypes) ---- */
+  .phone {
+    position: relative;
+    width: 393px;
+    height: 852px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background:
+      linear-gradient(0deg, rgb(246,243,238) 49.939%, rgba(247,245,245,0) 88.376%),
+      linear-gradient(90deg, rgb(232,228,240) 0%, rgb(223,240,236) 50%, rgb(245,237,232) 100%);
+  }
+  /* Dark hero backdrop from the Figma frame — sits behind the scrolling
+     content (not inside .scroll-body) so it can be moved independently.
+     JS below offsets it by a fraction of scroll distance, so it travels
+     slower than the lotus/content scrolling over it: classic parallax. */
+  .hero-backdrop {
+    position: absolute;
+    left: 0; top: -47px;
+    width: 393px; height: 364px;
+    z-index: 1;
+    pointer-events: none;
+    background-image: linear-gradient(180deg, rgba(24,36,52,.48) 58.368%, rgba(51,65,85,.48) 64.335%, rgba(186,191,194,.48) 79.269%, rgba(243,242,238,.48) 93.519%);
+    will-change: transform;
+  }
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 14px 24px 0;
+    z-index: 30;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .status-blur-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .status-blur-layer.layer-1 {
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+  }
+  .status-blur-layer.layer-2 {
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+  }
+  .status-blur-layer.layer-3 {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+  }
+  .status-bar .time, .status-bar .status-icons { position: relative; z-index: 1; }
+  .status-bar .time { font-weight: 600; font-size: 15px; color: #0c3b4a; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  /* Floats as its own overlay (out of flow) rather than pushing the
+     title/tabs down, since its visibility now follows scroll DIRECTION
+     (reappears on any upward scroll — a different rule than the tabs
+     row's docking, which follows scroll POSITION) and needs to be able
+     to show again mid-scroll without shoving already-docked content
+     back down. */
+  .app-header {
+    position: absolute;
+    top: 44px; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    padding: 8px 20px 4px;
+    z-index: 26; /* above .pillar-tabs-row (20) so it floats over the docked tabs when it reappears */
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .app-header.hidden {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+  .close-btn {
+    width: 40px; height: 40px;
+    border-radius: 60px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.45);
+    cursor: pointer;
+    border: none;
+  }
+  .close-btn img { width: 24px; height: 24px; }
+
+  .scroll-body {
+    position: relative;
+    z-index: 2; /* paints above .hero-backdrop (z-index:1) */
+    height: 852px;
+    padding-top: 44px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-body::-webkit-scrollbar { display: none; }
+
+  /* ---- page title ---- */
+  /* Bottom padding + .pillar-tabs-row's own top padding together make the
+     12px pre-scroll gap to the tabs; once the title scrolls away and the
+     tabs row is stuck under the app-header, only that row's own padding
+     remains visible — so the two gaps can differ (12px vs 8px) without
+     needing separate stuck/unstuck logic. */
+  /* Top padding includes the ~52px .app-header used to reserve in flow
+     before it became an absolutely-positioned floating overlay — this
+     keeps the title sitting where it visually did before that change. */
+  .page-title-row { padding: 64px 16px 4px; text-align: center; }
+  .page-title-row h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1;
+    color: #fff;
+    text-shadow: 0px 1px 21px rgba(0,0,0,.25);
+  }
+
+  /* ---- pillar tab bar: the interaction this variant is testing.
+     Sticky under the app-header so it stays reachable while the
+     selected pillar's detail content scrolls underneath it. ---- */
+  /* No position:sticky here — it stays in plain normal flow, moving
+     with scroll like any other content, until .stuck switches it on
+     below. Declaring `position:sticky; top:52px` up front would let the
+     browser's native sticky behavior pin it at y=52 the moment it
+     scrolls that far — regardless of the JS/observer logic that's
+     supposed to decide when it docks — which was the actual cause of
+     it appearing to snap into place before the title had scrolled away. */
+  .pillar-tabs-row {
+    /* relative, not sticky — still anchors the absolutely-positioned
+       edge-blur/grounding-blur children correctly while unstuck, without
+       triggering native sticky pinning (see comment above). */
+    position: relative;
+    z-index: 20;
+    padding: 8px 0 0;
+  }
+  /* Docks flush under the status bar once scrolled past its original
+     position (see the IntersectionObserver below) — independent of the
+     close button, which floats as its own overlay and can reappear on
+     scroll-up without affecting this. */
+  .pillar-tabs-row.stuck { position: sticky; top: 0; height: 48px; overflow: hidden; }
+  /* Grounding for the stuck tabs row — same graduated backdrop-blur
+     technique as .status-blur-layer (sharp at its own bottom edge,
+     progressively more blurred toward the top), so it reads as a
+     continuation of the status bar's frosted panel rather than a flat
+     color fade. Sits behind the tab chips, in front of scrolled content. */
+  .tabs-row-blur {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+  }
+  .pillar-tabs-row.stuck .tabs-row-blur { opacity: 1; }
+  .tabs-row-blur-layer { position: absolute; inset: 0; }
+  .tabs-row-blur-layer.layer-1 {
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+    mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+  }
+  .tabs-row-blur-layer.layer-2 {
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+    mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+  }
+  .tabs-row-blur-layer.layer-3 {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+  }
+  .pillar-tabs-scroll {
+    position: relative;
+    z-index: 1; /* paints above .tabs-row-blur (z-index:0) — see that rule's comment */
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    /* Generous side padding so the active tab can be scrolled to the
+       row's center even when it's the first or last pillar — otherwise
+       the scroll range clamps at 0 / max before it ever reaches center.
+       Bottom padding clears the active tab's box-shadow — overflow-x:auto
+       forces this element to also clip the y-axis, so without it the
+       shadow gets cut off instead of just fading out. Both shadow layers'
+       offsets exceed their blur radii, so it renders entirely below the
+       tab — no top padding needed for clearance. */
+    padding: 0 150px 32px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .pillar-tabs-scroll::-webkit-scrollbar { display: none; }
+  /* Edge blur: one blurred layer per edge, faded out toward the center via
+     mask-image. A single blur strength blended by mask opacity reads as a
+     smooth blurry-to-crisp transition and is far less fiddly to keep
+     aligned than stacking multiple graduated layers. */
+  .tabs-edge-blur {
+    position: absolute;
+    top: 8px;
+    height: 40px;
+    width: 56px;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .tabs-edge-blur.left {
+    left: 0;
+    -webkit-mask-image: linear-gradient(to right, black 0%, transparent 100%);
+    mask-image: linear-gradient(to right, black 0%, transparent 100%);
+  }
+  .tabs-edge-blur.right {
+    right: 0;
+    -webkit-mask-image: linear-gradient(to left, black 0%, transparent 100%);
+    mask-image: linear-gradient(to left, black 0%, transparent 100%);
+  }
+  .pillar-tab {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: none;
+    outline: none;
+    background: var(--tab-inactive);
+    font-family: 'Inclusive Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--brand-1);
+    cursor: pointer;
+    transition: background .2s ease, box-shadow .2s ease;
+  }
+  .pillar-tab img { width: 24px; height: 24px; }
+  .pillar-tab.active {
+    background: #fff;
+    padding-left: 20px;
+    box-shadow: 0 20px 12.5px rgba(0,0,0,0.06), 0 8px 5px rgba(0,0,0,0.06);
+  }
+  /* Always takes up space (icon/gap/text/gap/dot-slot) so a tab's width
+     doesn't shift when its unread dot disappears after being viewed —
+     only opacity/animation toggle, the layout box stays reserved. */
+  .pillar-tab .unread-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-1);
+    flex-shrink: 0;
+    opacity: 0;
+  }
+  .pillar-tab .unread-dot.visible {
+    opacity: 1;
+    animation: dot-pulse 1.6s ease-in-out infinite;
+  }
+  /* No per-dot delay, and renderTabs() rebuilds every dot fresh on each
+     call — they're all born at the same instant, so they pulse in sync
+     rather than needing a shared clock to coordinate them. */
+  @keyframes dot-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+  }
+
+  /* ---- header lotus area ----
+     Motion spec is Olivia's own Figma Make prototype (float / reflection
+     / ripple timing), translated from the motion.react version to plain
+     CSS keyframes here — same 5-stop irregular float, same negated
+     reflection, same two-ring pulse-group ripple timing. */
+  .leaf-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 260px;
+    width: 100%;
+    margin-top: 24px;
+    margin-bottom: 32px;
+  }
+  .ripple-wrap {
+    position: relative;
+    width: 280px; height: 340px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transform: scale(1.25); /* scales the whole lotus/reflection/ripple group as one unit */
+  }
+  /* Fills the same box as .ripple-wrap so the flower/reflection/shadow's
+     existing top/left values (tuned against that 280x340 box) keep
+     working unchanged — this just adds a per-state size multiplier on
+     top, scaled around the water line (207px) so the flower's base
+     stays anchored there regardless of how tall it is. */
+  .lotus-scale-wrap {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 207px;
+  }
+  /* Pass-through frame so lotus-wrap/lotus-reflection's existing
+     top/left values (relative to this box) keep working unchanged —
+     the translateY hover offset applied here moves the flower alone,
+     without moving .water-shadow-wrap, its sibling. */
+  .lotus-hover-wrap {
+    position: absolute;
+    inset: 0;
+  }
+  .lotus-wrap {
+    position: absolute;
+    /* Fixed px, not %-of-wrap — the actual visual cluster (lotus through
+       ripples) only occupies the top ~200px of the 340px-tall wrap, so
+       positioning by wrap-relative % left a big empty tail below it
+       that threw off flex-centering in the row. These fixed offsets are
+       shifted down so the cluster's own visual center lines up with the
+       wrap's true center (170px) — which IS what gets centered in the
+       row, regardless of the wrap's declared height. */
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 165px; height: 165px;
+    z-index: 2;
+    filter: drop-shadow(0 4px 16px rgba(12,59,74,.14));
+    animation: lotus-float 6s ease-in-out infinite;
+  }
+  .lotus-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  /* 5 irregular stops (not evenly spaced) so the drift reads as organic
+     breathing rather than a mechanical bounce. ±1.6px vertical, ±0.45°
+     rotation — deliberately subtle. */
+  @keyframes lotus-float {
+    0%   { transform: translateX(-50%) translateY(0px)     rotate(0deg);    }
+    22%  { transform: translateX(-50%) translateY(-1.6px)  rotate(.45deg);  }
+    48%  { transform: translateX(-50%) translateY(.7px)    rotate(-.2deg);  }
+    74%  { transform: translateX(-50%) translateY(-1.1px)  rotate(.3deg);   }
+    100% { transform: translateX(-50%) translateY(0px)     rotate(0deg);    }
+  }
+  .lotus-reflection {
+    position: absolute;
+    top: 51%; left: 50%; /* shifted +22% (same delta as the other pieces) to keep your tuned spacing relative to the lotus while recentering the whole cluster */
+    transform: translateX(-50%);
+    width: 165px; height: 95px;
+    z-index: 1; overflow: hidden;
+    opacity: .7; filter: blur(.8px) saturate(.75);
+    animation: lotus-reflect 6s ease-in-out infinite;
+    /* True opacity mask (fully opaque near the water line, tapering to
+       nearly transparent) instead of painting the page background on
+       top — lets whatever's actually behind it show through, rather
+       than risking a visible seam if the backdrop isn't a flat match
+       for --sand-0. */
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.9) 0%, rgba(0,0,0,.45) 50%, transparent 90%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.9) 0%, rgba(0,0,0,.45) 50%, transparent 90%);
+  }
+  .lotus-reflection img {
+    width: 165px; height: 165px;
+    object-fit: contain; display: block;
+    transform: scaleY(-1);
+  }
+  /* Exact inverse of lotus-float — same stops/timing/easing, Y and
+     rotation negated — so the reflection reads as one object and its
+     mirror rather than two independently-drifting layers. */
+  @keyframes lotus-reflect {
+    0%   { transform: translateX(-50%) translateY(0px)    rotate(0deg);   }
+    22%  { transform: translateX(-50%) translateY(1.6px)  rotate(-.45deg);}
+    48%  { transform: translateX(-50%) translateY(-.7px)  rotate(.2deg);  }
+    74%  { transform: translateX(-50%) translateY(1.1px)  rotate(-.3deg); }
+    100% { transform: translateX(-50%) translateY(0px)    rotate(0deg);   }
+  }
+  /* Ripple rings: two identical ellipses stacked in the same grid cell
+     (col-1/row-1) directly under the lotus, each pulsing outward on its
+     own ~9.5s clock, offset 0.4s apart so they read as a paired "group"
+     pulse rather than one ring. Per-ring keyframe spends 74% of the
+     cycle actually expanding (slow-start-then-release cubic-bezier) and
+     the remaining 26% invisible/holding — that pause is what makes it
+     read as an occasional pulse instead of a continuous ripple loop. */
+  .ripple-pulse-wrap {
+    position: absolute;
+    top: 207px; left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    z-index: 0; /* below .water-shadow-wrap, which overlays it */
+    pointer-events: none;
+  }
+  /* Water shadow — from each Iris state's own "water shadow" group in
+     the component set (large + small shape, blended differently),
+     centered on the same point as the ripples so it overlays them. */
+  /* Opacity is set inline per state by waterShadowOpacity() — a small
+     shadow at the same opacity as a large one reads as much darker, so
+     density scales with size. The value here is only a fallback. */
+  .water-shadow-wrap {
+    position: absolute;
+    top: 207px; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 112px; height: 32px;
+    z-index: 1;
+    opacity: .35;
+    pointer-events: none;
+  }
+  .water-shadow-large, .water-shadow-small { position: absolute; display: block; }
+  .water-shadow-large { left: 0; top: 0; width: 112px; height: 32px; mix-blend-mode: overlay; }
+  .water-shadow-small { left: 15px; top: 7px; width: 80px; height: 18px; mix-blend-mode: color-burn; }
+  .water-shadow-large img, .water-shadow-small img { width: 100%; height: 100%; display: block; }
+  .ripple-ring-slot {
+    grid-column: 1; grid-row: 1;
+    transform-origin: 50% 50%;
+    mix-blend-mode: multiply;
+    animation: ring-pulse 9.5s infinite;
+  }
+  .ripple-ring-slot.second { animation-delay: .4s; }
+  .ripple-ring-slot svg { display: block; }
+  .ripple-ring-slot ellipse { fill: none; stroke: rgba(12,59,74,.14); stroke-width: 1.5; }
+  @keyframes ring-pulse {
+    0%   { transform: scale(.04); opacity: .6; animation-timing-function: cubic-bezier(.5,0,.25,1); }
+    74%  { transform: scale(2.1); opacity: 0;  animation-timing-function: linear; }
+    100% { transform: scale(2.1); opacity: 0; }
+  }
+
+  /* ---- state + scale + quote ---- */
+  .state-block { padding: 0 24px 0; display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+  .state-inner { display: flex; flex-direction: column; gap: 16px; }
+  /* Title + "Updated …" caption are their own group so the caption sits
+     tight under the state name (4px) instead of picking up .state-inner's
+     16px gap, which is meant for the gap down to the scale. */
+  .state-heading { display: flex; flex-direction: column; gap: 4px; }
+  .state-inner h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 40px;
+    color: var(--brand-1);
+    text-align: center;
+  }
+  /* node 792:3843 */
+  .state-updated {
+    font-size: 12px;
+    line-height: 18px;
+    letter-spacing: .1px;
+    color: var(--neutral-60);
+    text-align: center;
+  }
+  .state-quote { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+
+  .domain-scale-large { width: 100%; }
+  /* Labels sit below the track (node 792:3265) — the markup order in
+     renderContent() reflects this; applyPillarScales() matches by class,
+     not position, so ordering is presentational only. */
+  .domain-scale-large .labels { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 4px; }
+  .domain-scale-large .labels span { text-align: center; font-size: 12px; font-weight: 500; color: var(--neutral-60); }
+  .domain-scale-large .labels span.active { color: var(--brand-1); font-weight: 600; }
+  .domain-scale-large .track-wrap { position: relative; height: 24px; }
+  .domain-scale-large .track-base { position: absolute; top: 10.5px; left: 0; right: 0; height: 3px; background: var(--neutral-20); border-radius: 11px; }
+  .domain-scale-large .track-fill { position: absolute; top: 10.5px; left: 0; height: 3px; background: var(--brand-1); border-radius: 11px; }
+  .domain-scale-large .dots { position: absolute; top: 0; left: 0; right: 0; height: 24px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; z-index: 1; }
+  .domain-scale-large .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--neutral-20); justify-self: center; }
+  .domain-scale-large .dot.passed { background: var(--brand-1); }
+  .domain-scale-large .dot.current { width: 12px; height: 12px; background: var(--brand-1); }
+
+  .scale-link-row { padding: 0 24px; margin-bottom: 24px; }
+  /* Plain text link, no pill/background — matches the new Iris design
+     (node 792:3863), which styles this as inline text rather than a
+     chip button. */
+  .scale-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 16px; line-height: 24px; font-weight: 500; color: var(--brand-1); cursor: pointer;
+  }
+
+  /* ---- main content ---- */
+  .main-content { display: flex; flex-direction: column; gap: 48px; padding: 0 16px 60px; }
+
+  .snapshot-card {
+    background: linear-gradient(137.65deg, rgb(223,225,239) 1.94%, rgb(253,251,247) 38.75%);
+    border-radius: 24px;
+    padding: 24px 24px 16px;
+    box-shadow: 0 1px 1.5px rgba(0,0,0,0.1), 0 1px 1px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .snapshot-top { display: flex; flex-direction: column; gap: 8px; }
+  .snapshot-header { display: flex; align-items: center; gap: 8px; }
+  .snapshot-header img { width: 24px; height: 24px; }
+  .snapshot-header span { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .snapshot-body { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+  .snapshot-taking-shape { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+  .snapshot-taking-shape h3 { font-size: 24px; line-height: 28px; font-weight: 400; color: var(--text-default); }
+  .snapshot-taking-shape p { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+
+  .snapshot-chips-label { font-size: 16px; font-weight: 500; color: var(--brand-1); margin-bottom: 13px; }
+  .snapshot-chips { display: flex; flex-wrap: wrap; gap: 8px 4px; }
+  .chip { background: var(--neutral-15); border-radius: 99px; padding: 8px 16px 8px 12px; display: flex; align-items: center; gap: 4px; }
+  .chip img { width: 20px; height: 20px; }
+  .chip span { font-size: 16px; color: var(--neutral-90); }
+
+  .feel-right-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .feel-right-row span { font-size: 16px; font-weight: 500; color: var(--brand-1); }
+  .feel-right-icons { display: flex; gap: 8px; }
+  .feel-right-icons button {
+    width: 40px; height: 40px; border-radius: 100px; background: white;
+    border: 1px solid var(--neutral-15); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .feel-right-icons img { width: 24px; height: 24px; }
+
+  .snapshot-divider { height: 1px; background: var(--neutral-20); width: 100%; }
+
+  .snapshot-disclaimer { display: flex; gap: 8px; align-items: flex-start; }
+  .snapshot-disclaimer img { width: 20px; height: 20px; flex-shrink: 0; }
+  .snapshot-disclaimer p { font-size: 13px; line-height: 18px; color: var(--neutral-70); }
+
+  .about-content { display: flex; flex-direction: column; gap: 24px; padding: 0 8px; }
+  .about-title { font-family: 'Lora', serif; font-weight: 400; font-size: 28px; line-height: 40px; color: var(--brand-1); }
+  .about-block { display: flex; flex-direction: column; }
+  .about-block h3 { font-size: 16px; font-weight: 500; color: var(--brand-1); margin-bottom: 2px; }
+  .about-block p { font-size: 16px; line-height: 24px; color: var(--neutral-80); }
+  .shapes-block { display: flex; flex-direction: column; }
+  .shapes-intro p { font-size: 16px; line-height: 24px; color: var(--neutral-80); margin-bottom: 12px; }
+  .shapes-quotes { display: flex; flex-direction: column; gap: 16px; }
+  .shapes-quotes p { font-size: 16px; line-height: 24px; font-weight: 600; font-style: italic; color: var(--neutral-80); }
+
+  .home-indicator-wrapper {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 24px;
+    display: flex; align-items: center; justify-content: center; z-index: 10;
+    background: transparent; pointer-events: none;
+  }
+  .home-indicator { width: 134px; height: 5px; background: #0c3b4a; opacity: 0.2; border-radius: 100px; }
+
+  /* ---- content entrance: replays on every tab switch ---- */
+  @keyframes pillarEnterContent {
+    0%   { transform: translateY(32px); opacity: 0; filter: blur(8px); }
+    100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+  }
+  .pillar-enter { animation: pillarEnterContent 1.3125s cubic-bezier(0.22, 1, 0.36, 1) both; }
+</style>
+<style>/* embedded in the case study */html.embedded,html.embedded body{background:transparent!important;min-height:0!important;height:auto!important;margin:0!important;padding:0!important;display:block!important;overflow:hidden!important}html.embedded .phone{box-shadow:none!important;margin:0!important;border-radius:0!important}</style>
+<style id="beige-header">
+  /* No edge blurs on the pill tabs, and no frosted blur behind the status bar or the docked tabs.
+     Once the tabs dock, the status bar and the tabs row sit on the page beige, which fades out just below the pills. */
+  .tabs-edge-blur,.status-blur-layer,.tabs-row-blur-layer{display:none!important}
+  /* Status bar and docked-tabs beige: one scroll-linked value (--hdr, set below) drives both, so they fade together
+     and reach zero exactly where the tabs undock. No timed transitions. */
+  .status-bar::before{content:"";position:absolute;inset:0;background:rgb(246,243,238);opacity:var(--hdr,0);z-index:0}
+  .tabs-row-blur{opacity:var(--hdr,0)!important;transition:none!important}
+  /* Tabs no longer dock: they scroll away with the page. The status bar still fades to beige as content passes under it. */
+  .pillar-tabs-row.stuck{position:relative!important;top:auto!important;height:auto!important;overflow:visible!important}
+  .tabs-row-blur{display:none!important}
+  /* No beige behind the status bar on scroll */
+  .status-bar::before{display:none!important}
+  /* The status bar beige fades out below its edge, so there is no hard line over the content */
+  .status-bar{overflow:visible!important}
+  .status-bar::before{bottom:-20px!important;background:linear-gradient(180deg,rgb(246,243,238) 0%,rgb(246,243,238) calc(100% - 20px),rgba(246,243,238,0) 100%)!important}
+  .pillar-tabs-row.stuck{overflow:visible!important}
+  .tabs-row-blur{bottom:-24px!important;background:linear-gradient(180deg,rgb(246,243,238) 0%,rgb(246,243,238) calc(100% - 32px),rgba(246,243,238,0) 100%)}
+</style>
+<style id="standalone-view">
+  /* Opened in its own tab: the phone sits centered with space above it, rounded corners and a soft shadow, and the page scrolls on short windows */
+  html.standalone body{align-items:flex-start!important;justify-content:center!important;padding:48px 16px 64px!important;overflow:auto!important;min-height:100vh;box-sizing:border-box}
+  html.standalone .phone{border-radius:44px!important;overflow:hidden!important;box-shadow:0 30px 60px -30px rgba(20,30,50,.45),0 4px 14px rgba(20,30,50,.08)!important;flex:none}
+  html.standalone,html.standalone body{overflow-x:hidden!important}
+</style>
+<script>
+/* Standalone tab on a narrow screen: shrink the 393px phone to fit, so there is no sideways scroll */
+(function(){if(window.self!==window.top)return;function fit(){var ph=document.querySelector('.phone');if(!ph)return;var k=Math.min(1,(document.documentElement.clientWidth-32)/393);ph.style.zoom=k<1?k:'';}
+document.addEventListener('DOMContentLoaded',fit);addEventListener('resize',fit);})();
+</script>
+<style id="embed-overrides">
+  .phone{box-shadow:none!important}
+  html.embedded body{background:transparent!important;min-height:0!important;height:100vh}
+</style>
+<script>document.documentElement.classList.add(window.self!==window.top?'embedded':'standalone')</script>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <div class="status-blur-layer layer-1"></div>
+    <div class="status-blur-layer layer-2"></div>
+    <div class="status-blur-layer layer-3"></div>
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <img src="figma-assets/ios-signal.svg" alt="">
+      <img src="figma-assets/ios-wifi.svg" alt="">
+      <img src="figma-assets/ios-battery.svg" alt="">
+    </div>
+  </div>
+
+  <div class="hero-backdrop" id="heroBackdrop"></div>
+
+  <div class="scroll-body" id="scrollBody">
+    <div class="app-header">
+      <button class="close-btn" title="Close (not wired in this POC)"><img src="figma-assets/detail-back-arrow.svg" alt="close"></button>
+    </div>
+
+    <div class="page-title-row">
+      <h1>Your 6 Pillars Of Wellness</h1>
+    </div>
+
+    <div id="tabsStickSentinel" style="height:1px;"></div>
+    <div class="pillar-tabs-row">
+      <div class="tabs-row-blur">
+        <div class="tabs-row-blur-layer layer-1"></div>
+        <div class="tabs-row-blur-layer layer-2"></div>
+        <div class="tabs-row-blur-layer layer-3"></div>
+      </div>
+      <div class="pillar-tabs-scroll" id="tabsScroll"></div>
+      <div class="tabs-edge-blur left"></div>
+      <div class="tabs-edge-blur right"></div>
+    </div>
+
+    <div id="pillarContent"></div>
+  </div>
+
+  <div class="home-indicator-wrapper">
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<script src="figma-assets/pillar-data.js"></script>
+<script>
+/* ── Per-pillar detail copy + leaf art (the parts pillar-data.js doesn't
+   already cover). Mirrors the 6 standalone pillar-detail-*.html pages —
+   this is the same content, just parameterized behind one template
+   instead of six near-duplicate files, so the tab interaction has a
+   single view to switch instead of six pages to navigate between. ── */
+var PILLAR_DETAIL = {
+  emotional: {
+    stateQuote: "You move through hard feelings without losing yourself in them, and you recover faster. You know yourself well enough that not much catches you completely off guard.",
+    snapshotBody: "Something shifted over the last month. In early July you wrote, \"I noticed I was getting worked up and actually stopped before I said anything.\" That kind of catch-yourself moment has shown up three more times since. Your mood ratings tell a similar story: the swings are smaller than they were in the spring, and the recoveries are faster. What stands out most is that hard days still happen, but they don't seem to knock you as far off course. That's what's shaping this picture: not the absence of difficulty, but a real change in how you move through it.",
+    about: {
+      reflects: "Understanding what your emotions are telling you, and building the awareness to respond instead of react.",
+      notice: "As you pay attention to this area, you may start to spot patterns: emotions that tend to follow certain situations, people, or times of day. That awareness itself is progress.",
+      connects: "Emotional awareness is the foundation that everything else builds on. When you can recognize what you're feeling, and understand why, you're better equipped to manage stress, make decisions, and bounce back from hard moments. This isn't about being positive all the time. It's about developing a clearer relationship with your own emotional experience so that feelings become useful information rather than something to push through. When emotional wellness is strong, people tend to see downstream improvements in their relationships, their physical health, and their ability to stay motivated, even on difficult days.",
+      shapesIntro: "This comes through most clearly when you name a feeling and what triggered it, not just that you felt \"bad\" or \"fine,\" but what was actually happening. Mentioning what you tried, and whether it worked, helps too.",
+      quotes: ["I felt anxious all morning and couldn't figure out why.", "Started noticing I feel better on days I actually name what's bothering me.", "Caught myself getting worked up and stopped before I said something I'd regret."]
+    }
+  },
+  physical: {
+    stateQuote: "Sleep, movement, or energy patterns are becoming more visible to you. You're experimenting with small changes and starting to notice their effects.",
+    snapshotBody: "Sleep and energy have come up more in what you've shared over the last few weeks. On the 12th you wrote, \"Actually went to bed on time and could tell the difference the next day.\" That's a shift from earlier in the month, when tired and drained showed up more often without much reflection on why. Your mood ratings on better-rested days tend to run higher too. What that suggests is that you're starting to connect the dots between how you're sleeping and how you feel, even if the habit itself is still inconsistent.",
+    about: {
+      reflects: "How your body's daily rhythms, like sleep, movement, and energy, directly shape your emotional state, often in ways you haven't connected yet.",
+      notice: "Sleep and movement often show up in mood before people expect them to. Irritability and fatigue in the afternoon frequently trace back to the night before.",
+      connects: "Physical and mental health are more tightly linked than most people realize. Sleep deprivation impairs emotion regulation and amplifies negative moods. Regular movement improves mood, self-efficacy, and stress tolerance. This area doesn't ask you to follow a rigid health routine. It helps you observe how your body's daily rhythms affect your emotional state.",
+      shapesIntro: "This comes through most clearly when you mention how you slept, moved, or ate, even in passing, and whether you noticed it affecting your day.",
+      quotes: ["Barely slept, running on fumes.", "Started noticing I think clearer on days I actually eat breakfast.", "Went for a run before a hard meeting and it completely changed how I showed up."]
+    }
+  },
+  social: {
+    stateQuote: "You want more depth in your relationships but don't quite know how to get there. Some connections are starting to mean more than others. You're just not sure which ones yet.",
+    snapshotBody: "Connection has shown up a few times in what you've shared, though not in a steady pattern yet. Last week you wrote, \"kind of a lonely week but I don't really know what I want to do about it,\" and a few days later, \"talked to M for an hour, felt like myself again.\" Those two entries sit close together, on opposite ends of your mood ratings for the week. What that suggests is that connection is doing real work for you emotionally, even if it's still inconsistent right now.",
+    about: {
+      reflects: "Whether your relationships actually leave you feeling restored, and what kinds of connection genuinely sustain you.",
+      notice: "Connection and mood tend to track closely. Many people notice they feel calmer on days they connect with someone, even briefly.",
+      connects: "Research consistently shows that social connection is one of the most powerful buffers against depression, anxiety, and chronic stress. But this isn't just about how much social contact you have. It's about the quality and type of connection that actually works for you. Social disconnection doesn't just feel bad. It has measurable effects on mood, motivation, and overall health.",
+      shapesIntro: "This comes through most clearly when you mention specific people and how time with them actually left you feeling, not just that you saw someone, but whether it filled you up or wore you down.",
+      quotes: ["Haven't really talked to anyone all week.", "Realized I actually look forward to seeing my sister now.", "Turned down plans because I knew I needed the quiet instead, and that felt right."]
+    }
+  },
+  cognitive: {
+    stateQuote: "Motivation is hard to find. Tasks that used to feel manageable feel heavier, or you're going through the motions without much real engagement.",
+    snapshotBody: "Mental fog and low motivation have come up as a theme in what you've shared recently, more than any other pattern this month. Tasks that would normally feel manageable have felt heavier, and there's been less mention of anything that sparked curiosity or interest. This is often one of the quieter areas to slip when things get heavy, and one that tends to respond well to small shifts. It might be worth naming in your next session.",
+    about: {
+      reflects: "Whether your mind feels engaged or quietly depleted, and how that signal affects your mood, motivation, and resilience.",
+      notice: "Learning something new is often linked to feeling calmer, not just more engaged. Mental stimulation and emotional steadiness tend to move together.",
+      connects: "Staying mentally engaged, through learning, problem-solving, or tackling something new, is more connected to emotional health than it might seem. Curiosity and cognitive stimulation can boost self-esteem and support a sense of purpose. Cognitive under-stimulation, too much routine and too little challenge, can quietly pull down mood and motivation over time.",
+      shapesIntro: "This comes through most clearly when you mention what you were curious about, or the opposite: that nothing's holding your attention lately.",
+      quotes: ["Couldn't concentrate on anything today.", "Picked up a book again for the first time in months.", "Spent the weekend deep in a project I actually cared about, and lost track of time."]
+    }
+  },
+  environmental: {
+    stateQuote: "You haven't shared enough for us to scale your environmental wellness, but you might already have a sense of where you fall:",
+    about: {
+      reflects: "How the spaces you move through every day, like light, noise, clutter, and nature, are shaping how you think and feel without you realizing it.",
+      notice: "Time spent indoors versus outdoors often shows up in stress levels. Many people notice their stress is higher on days spent mostly inside.",
+      connects: "Your environment has a direct and often underestimated effect on your internal state. Natural light, time outdoors, and organized spaces have been linked to reduced stress and improved focus. Noise, clutter, and overstimulating environments can increase irritability and difficulty concentrating in ways that are easy to attribute to other causes.",
+      shapesIntro: "This comes through most clearly when you mention where you were and how the space around you affected your focus or mood: noise, light, clutter, being outside.",
+      quotes: ["My apartment feels chaotic and it's getting to me.", "Opened the blinds this morning and it actually helped.", "Rearranged my workspace and now I actually want to sit down at it."]
+    }
+  },
+  spiritual: {
+    stateQuote: "You haven't shared enough for us to scale your spiritual wellness, but you might already have a sense of where you fall:",
+    about: {
+      reflects: "Whether how you're spending your time actually reflects what matters to you, and what shows up emotionally when it doesn't.",
+      notice: "Purpose-driven moments, like volunteering, helping someone, or acting on a value, are often linked to a same-day mood lift, even when nothing else about the day changed.",
+      connects: "A strong sense of purpose is one of the most reliable predictors of emotional resilience and life satisfaction. Spiritual wellness doesn't require any particular belief system. It's about alignment: whether the way you're spending your time and energy feels connected to what actually matters to you. When that alignment is off, it often shows up as a persistent sense of emptiness or feeling like you're going through the motions.",
+      shapesIntro: "This comes through most clearly when you mention what felt meaningful, or the sense that something's missing, even if you can't quite name what.",
+      quotes: ["None of this feels like what I actually want.", "Started asking myself what I actually want more of.", "The volunteering thing was the best part of my week, and it wasn't close."]
+    }
+  }
+};
+
+var PILLAR_ORDER = ['emotional', 'physical', 'social', 'cognitive', 'environmental', 'spiritual'];
+/* Open on the pillar named in ?pillar= (set by a scale page's back button), else Emotional */
+var selectedPillar = (function(){var p=new URLSearchParams(location.search).get('pillar');return ['emotional','social','physical','cognitive','environmental','spiritual'].indexOf(p)>-1?p:'emotional';})();
+
+// Placeholder recalculation date shown under the state title. Real
+// implementation reads this per pillar from the scoring service.
+var PILLAR_UPDATED_ON = 'Mar 11, 2026';
+
+/* Pillars with a new insight the user hasn't seen yet — drives the
+   pulsing dot on the tab. Held in memory (not localStorage) on purpose:
+   the demo should show the same three dots on every fresh load. It used
+   to read localStorage 'pillarViewed_*', which meant the dots silently
+   vanished for good after one pass through the prototype.
+   Excludes 'emotional', which is already open on load. */
+var newInsightPillars = { physical: true, social: true, cognitive: true };
+
+function hasUnreadData(slug) {
+  return !!newInsightPillars[slug];
+}
+
+function renderTabs() {
+  var scroll = document.getElementById('tabsScroll');
+  scroll.innerHTML = PILLAR_ORDER.map(function(slug) {
+    var pillar = PILLARS[slug];
+    var active = slug === selectedPillar;
+    var dot = '<span class="unread-dot' + (hasUnreadData(slug) ? ' visible' : '') + '"></span>';
+    return '<button class="pillar-tab' + (active ? ' active' : '') + '" data-pillar="' + slug + '">' +
+      '<img data-pillar-icon="' + slug + '" alt="">' +
+      '<span>' + pillar.name + '</span>' + dot +
+      '</button>';
+  }).join('');
+  applyPillarIcons();
+  scroll.querySelectorAll('.pillar-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() { selectPillar(btn.dataset.pillar); });
+  });
+  centerActiveTab();
+}
+
+function centerActiveTab() {
+  var scroll = document.getElementById('tabsScroll');
+  var active = scroll.querySelector('.pillar-tab.active');
+  if (!active) return;
+  scroll.scrollLeft = active.offsetLeft + active.offsetWidth / 2 - scroll.clientWidth / 2;
+}
+
+var LOTUS_BY_STATE = {
+  'Still Building': 'figma-assets/lotus-stillbuilding.png',
+  'Needs Care': 'figma-assets/lotus-needscare.png',
+  'Emerging': 'figma-assets/lotus-emerging.png',
+  'Growing': 'figma-assets/lotus-growing.png',
+  'Thriving': 'figma-assets/lotus-thriving.png',
+  'Flourishing': 'figma-assets/lotus-flourishing.png'
+};
+
+// Each state's own "water shadow" group (large + small shape) from the
+// Iris component set — including "Still Building" (no-data pillars),
+// which has a water shadow but no flower. Growing/Thriving/Flourishing
+// share one pair in the source file itself — not a shortcut taken here.
+var WATER_SHADOW_BY_STATE = {
+  'Still Building': { large: 'figma-assets/water-shadow-stillbuilding-large.svg', small: 'figma-assets/water-shadow-stillbuilding-small.svg' },
+  'Needs Care': { large: 'figma-assets/water-shadow-needscare-large.svg', small: 'figma-assets/water-shadow-needscare-small.svg' },
+  'Emerging': { large: 'figma-assets/water-shadow-emerging-large.svg', small: 'figma-assets/water-shadow-emerging-small.svg' },
+  'Growing': { large: 'figma-assets/water-shadow-growing-large.svg', small: 'figma-assets/water-shadow-growing-small.svg' },
+  'Thriving': { large: 'figma-assets/water-shadow-thriving-large.svg', small: 'figma-assets/water-shadow-thriving-small.svg' },
+  'Flourishing': { large: 'figma-assets/water-shadow-flourishing-large.svg', small: 'figma-assets/water-shadow-flourishing-small.svg' }
+};
+
+// Illustrative real-life relative scale, seeds through full bloom — the
+// source images are all exported at similar pixel dimensions regardless
+// of what they depict, so without this every state renders the same
+// size. Tune freely; these are a starting point, not measured values.
+var LOTUS_SCALE_BY_STATE = {
+  'Still Building': 0.35,
+  'Needs Care': 0.9,
+  'Emerging': 0.75,
+  'Growing': 0.9,
+  'Thriving': 1.0,
+  'Flourishing': 1.3
+};
+// Fixed pixel Y-offset (applied after scaling, so it stays a constant
+// hover distance regardless of size) — currently just Still Building,
+// nudged up so the seeds read as hovering just above the water/ripples
+// instead of sitting on the same line as a full flower would.
+var LOTUS_Y_OFFSET_BY_STATE = {
+  'Still Building': -20
+};
+// Per-state overrides for .water-shadow-wrap's base look (opacity 0.5,
+// no blur). Growing's shadow reads too prominent/sharp at that base —
+// dimmed and softened here rather than changing the shared base for
+// every other state.
+var WATER_SHADOW_OVERRIDE_BY_STATE = {
+  'Growing': { blur: 3 }
+};
+
+/* Water-shadow density as a function of size.
+   A shadow scaled down keeps its per-pixel darkness, so a small one reads
+   as *stronger* than a large one at the same opacity — the eye compares
+   density, not total area. Counter that by tying opacity to the state's
+   scale: opacity = REF_OPACITY * (scale / REF_SCALE) ^ FALLOFF, clamped.
+
+   FALLOFF = 1 makes opacity track the shadow's linear size (1:1). Push it
+   above 1 to dim small shadows harder; below 1 to flatten the effect.
+   At the current scales this yields roughly:
+     Still Building 0.35x -> .12   Emerging 0.75x -> .26
+     Needs Care / Growing 0.9x -> .32   Thriving 1.0x -> .35
+     Flourishing 1.3x -> .45 (clamped)                                  */
+var WATER_SHADOW_REF_SCALE = 1.0;   // scale at which REF_OPACITY applies
+var WATER_SHADOW_REF_OPACITY = 0.35;
+var WATER_SHADOW_FALLOFF = 1.0;
+var WATER_SHADOW_MIN_OPACITY = 0.10; // floor: never fully disappears
+var WATER_SHADOW_MAX_OPACITY = 0.45; // ceiling: never reads as a hard blot
+
+function waterShadowOpacity(scale) {
+  var o = WATER_SHADOW_REF_OPACITY *
+    Math.pow(scale / WATER_SHADOW_REF_SCALE, WATER_SHADOW_FALLOFF);
+  return Math.min(WATER_SHADOW_MAX_OPACITY, Math.max(WATER_SHADOW_MIN_OPACITY, o));
+}
+
+function renderContent() {
+  var slug = selectedPillar;
+  var pillar = PILLARS[slug];
+  var detail = PILLAR_DETAIL[slug];
+  var hasData = pillar.state !== null;
+
+  // Every Iris state — including "Still Building" for no-data pillars —
+  // now has its own flower + water shadow, so both look up uniformly by
+  // the effective state name instead of branching on hasData.
+  var stateName = hasData ? pillar.state : 'Still Building';
+  var lotusSrc = LOTUS_BY_STATE[stateName];
+  var waterShadow = WATER_SHADOW_BY_STATE[stateName];
+  var lotusScale = LOTUS_SCALE_BY_STATE[stateName] || 1;
+  var lotusYOffset = LOTUS_Y_OFFSET_BY_STATE[stateName] || 0;
+  var waterShadowOverride = WATER_SHADOW_OVERRIDE_BY_STATE[stateName] || null;
+  var waterShadowStyle = ' style="opacity:' + waterShadowOpacity(lotusScale).toFixed(3) +
+    (waterShadowOverride ? ';filter:blur(' + waterShadowOverride.blur + 'px)' : '') + '"';
+  var rippleRingSvg = '<svg width="140" height="40" viewBox="0 0 140 40"><ellipse cx="70" cy="20" rx="68" ry="18"/></svg>';
+  var rippleHtml =
+    '<div class="ripple-wrap">' +
+      '<div class="ripple-pulse-wrap">' +
+        '<div class="ripple-ring-slot">' + rippleRingSvg + '</div>' +
+        '<div class="ripple-ring-slot second">' + rippleRingSvg + '</div>' +
+      '</div>' +
+      // Flower + reflection + shadow scale together as one unit around
+      // the water line — ripples above are deliberately excluded, since
+      // they represent ambient water disturbance, not the object itself.
+      '<div class="lotus-scale-wrap" style="transform: scale(' + lotusScale + ')">' +
+        '<div class="water-shadow-wrap"' + waterShadowStyle + '>' +
+          '<div class="water-shadow-large"><img src="' + waterShadow.large + '" alt=""></div>' +
+          '<div class="water-shadow-small"><img src="' + waterShadow.small + '" alt=""></div>' +
+        '</div>' +
+        // Hover offset applies to the flower and its reflection
+        // separately, negated between them, so they stay mirrored the
+        // same distance from the water line (horizon) instead of both
+        // shifting up together. Divided by lotusScale to compensate
+        // for sitting inside .lotus-scale-wrap's transform — otherwise
+        // the parent's scale shrinks the offset too (e.g. -20px became
+        // -7px at 0.35x). The shadow (outside this) stays put either way.
+        '<div class="lotus-hover-wrap" style="transform: translateY(' + (lotusYOffset / lotusScale) + 'px)">' +
+          '<div class="lotus-wrap"><img src="' + lotusSrc + '" alt="" draggable="false"></div>' +
+        '</div>' +
+        '<div class="lotus-hover-wrap" style="transform: translateY(' + (-lotusYOffset / lotusScale) + 'px)">' +
+          '<div class="lotus-reflection"><img src="' + lotusSrc + '" alt="" draggable="false"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  var snapshotHtml = hasData ?
+    '<div class="snapshot-top">' +
+      '<div class="snapshot-header"><img src="figma-assets/detail-sparkle.svg" alt=""><span>Your ' + pillar.name.toLowerCase() + ' snapshot</span></div>' +
+      '<p class="snapshot-body">' + detail.snapshotBody + '</p>' +
+    '</div>' +
+    '<div>' +
+      '<div class="snapshot-chips-label">Snapshot drawn from</div>' +
+      '<div class="snapshot-chips" data-snapshot-chips="' + slug + '"></div>' +
+      '<div class="feel-right-row"><span>Does this feel right?</span>' +
+        '<div class="feel-right-icons">' +
+          '<button><img src="figma-assets/detail-thumb-up.svg" alt="thumbs up"></button>' +
+          '<button><img src="figma-assets/detail-thumb-down.svg" alt="thumbs down"></button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+    :
+    '<div class="snapshot-header"><img src="figma-assets/detail-sparkle.svg" alt=""><span>Your ' + pillar.name.toLowerCase() + ' snapshot</span></div>' +
+    '<div class="snapshot-taking-shape">' +
+      '<h3>Taking shape</h3>' +
+      '<p>This becomes the most personal part of the page: our insights of your patterns, in your own words, and what they suggest about where you are.</p>' +
+    '</div>' +
+    '<div><div class="snapshot-chips-label">Snapshot drawn from</div><div class="snapshot-chips" data-snapshot-chips="' + slug + '"></div></div>';
+
+  var html =
+    '<div class="pillar-enter">' +
+
+    '<div class="leaf-header-row">' + rippleHtml + '</div>' +
+
+    '<div class="state-block">' +
+      '<div class="state-inner">' +
+        '<div class="state-heading">' +
+          '<h1>' + (pillar.state || 'Still Building...') + '</h1>' +
+          // Only shown once a pillar has data — nothing has been
+          // "updated" on a pillar that's still building.
+          (hasData ? '<div class="state-updated">Updated ' + PILLAR_UPDATED_ON + '</div>' : '') +
+        '</div>' +
+        '<div class="domain-scale-large" data-pillar-scale="' + slug + '" data-scale-type="large">' +
+          '<div class="track-wrap"><div class="track-base"></div><div class="track-fill"></div>' +
+            '<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>' +
+          '</div>' +
+          '<div class="labels"><span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span></div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="state-quote">' + detail.stateQuote + '</p>' +
+    '</div>' +
+
+    '<div class="scale-link-row">' +
+      '<div class="scale-link" onclick="window.location.href=\'pillar-scale-' + slug + '.html?from=tabs\'">' +
+        '<span>' + pillar.name + ' scale breakdown</span><span class="material-symbols-outlined">arrow_forward</span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="main-content">' +
+      '<div class="snapshot-card">' + snapshotHtml +
+        '<div class="snapshot-divider"></div>' +
+        '<div class="snapshot-disclaimer"><img src="figma-assets/detail-shield-check.svg" alt="">' +
+          '<p>Snapshots are built from your care activity using clinician-developed tools but are not clinical diagnoses. Your data stays private.</p>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="about-content">' +
+        '<h2 class="about-title">What is ' + pillar.name + ' Wellness</h2>' +
+        '<div class="about-block"><h3>What it reflects</h3><p>' + detail.about.reflects + '</p></div>' +
+        '<div class="about-block"><h3>What you might notice</h3><p>' + detail.about.notice + '</p></div>' +
+        '<div class="about-block"><h3>How it connects to your mental health</h3><p>' + detail.about.connects + '</p></div>' +
+        '<div class="about-block shapes-block"><h3>What shapes this pillar</h3>' +
+          '<div class="shapes-intro"><p>' + detail.about.shapesIntro + '</p><p>A few things that people might say:</p></div>' +
+          '<div class="shapes-quotes">' + detail.about.quotes.map(function(q) { return '<p>' + q + '</p>'; }).join('') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '</div>';
+
+  var mount = document.getElementById('pillarContent');
+  mount.innerHTML = html;
+
+  applyPillarIcons();
+  applyPillarScales();
+  applySnapshotChips();
+
+  // Shared scale logic (pillar-data.js) fills to the last dot's own
+  // center (90%), matching the other pillar-detail pages — left as-is
+  // there. Here, at the final state, push the fill to 100% so the bar
+  // reads as "nothing more beyond this" instead of stopping short.
+  if (pillar.state === 'Flourishing') {
+    var fill = document.querySelector('.domain-scale-large .track-fill');
+    if (fill) fill.style.width = '100%';
+  }
+}
+
+function selectPillar(slug) {
+  if (slug === selectedPillar) return;
+  selectedPillar = slug;
+  // Opening a pillar is what clears its "new insight" dot.
+  delete newInsightPillars[slug];
+  document.getElementById('scrollBody').scrollTop = 0;
+  renderTabs();
+  renderContent();
+}
+
+/* ── Backdrop parallax: the dark hero gradient trails scroll at a
+   fraction of the content's speed, so it reads as sitting further back
+   than the lotus/content scrolling in front of it. ── */
+var heroBackdrop = document.getElementById('heroBackdrop');
+var appHeader = document.querySelector('.app-header');
+var tabsRow = document.querySelector('.pillar-tabs-row');
+var PARALLAX_FACTOR = 0.4;
+var lastScrollTop = 0;
+document.getElementById('scrollBody').addEventListener('scroll', function(e) {
+  var scrollTop = e.target.scrollTop;
+  heroBackdrop.style.transform = 'translateY(' + (-scrollTop * PARALLAX_FACTOR) + 'px)';
+
+  // React to ANY directional delta, not just ones past a threshold — a
+  // noise floor combined with updating lastScrollTop every event means
+  // slow scrolling in many tiny sub-floor increments never accumulates
+  // enough delta to register a direction at all, no matter how far it
+  // travels in total. A 1px reversal is imperceptible to fade in/out.
+  var delta = scrollTop - lastScrollTop;
+  if (delta > 0) {
+    appHeader.classList.toggle('hidden', scrollTop > 40);
+  } else if (delta < 0) {
+    // Scrolling up ever shows the button, from anywhere on the page — a
+    // direction-based rule, independent of the tabs' docking state below.
+    appHeader.classList.remove('hidden');
+  }
+  lastScrollTop = scrollTop;
+}, { passive: true });
+
+/* ── Dock trigger: tied to the tabs row's REAL sticky point via
+   IntersectionObserver on a sentinel placed just above it, instead of a
+   guessed scroll-distance threshold. A fixed pixel threshold has no
+   relationship to where the row actually reaches the top of the
+   viewport — that depends on the title's height above it — so it could
+   fire before the row was actually pinned, leaving a visible gap
+   between the two states. This is deliberately separate from the
+   button's visibility above: docking follows scroll position (stays
+   docked regardless of direction), the button follows scroll direction
+   (can reappear mid-page without undocking the tabs). */
+var stuckObserver = new IntersectionObserver(function(entries) {
+  tabsRow.classList.toggle('stuck', !entries[0].isIntersecting);
+  // rootMargin shrinks the observed viewport by the status bar's 44px
+  // height, so "intersecting" turns false exactly when the title
+  // scrolls behind that opaque overlay — where it actually disappears
+  // from view — rather than when it crosses the true (but visually
+  // covered) top edge of the scroll container.
+}, { root: document.getElementById('scrollBody'), threshold: 0, rootMargin: '-44px 0px 0px 0px' });
+stuckObserver.observe(document.getElementById('tabsStickSentinel'));
+
+delete newInsightPillars[selectedPillar];
+renderTabs();
+renderContent();
+</script>
+<script>
+/* Scroll-linked header fade: 0 until the tabs reach their docking point, then 0 to 1 over the next 32px of scroll */
+(function(){function init(){var sc=document.querySelector('.scroll-body'),row=document.querySelector('.pillar-tabs-row'),ph=document.querySelector('.phone');if(!sc||!row||!ph)return;var T=null;
+function calc(){if(!row.classList.contains('stuck'))T=row.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop-44;}
+function upd(){if(T===null)calc();var k=Math.max(0,Math.min(1,(sc.scrollTop-T)/32));ph.style.setProperty('--hdr',k.toFixed(3));}
+calc();upd();sc.addEventListener('scroll',upd,{passive:true});addEventListener('resize',function(){T=null;upd();});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();
+</script>
+</body>
+</html>

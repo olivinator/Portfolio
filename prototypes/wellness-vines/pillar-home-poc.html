@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pillar Home — Swipe POC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Inclusive+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+  :root {
+    --brand-1: #004455;
+    --teal-60: #007a84;
+    --sand-0: #f3eee9;
+    --sand-1: #fdfbf7;
+    --sand-2: #fffefd;
+    --neutral-20: #dbd7d3;
+    --neutral-60: #5e666b;
+    --neutral-70: #57524d;
+    --neutral-80: #453f39;
+    --neutral-90: #332d26;
+    --text-default: #001219;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+  body {
+    font-family: 'Inclusive Sans', sans-serif;
+    background: #e8e4e4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ---- phone shell ---- */
+  .phone {
+    position: relative;
+    width: 393px;
+    height: 852px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background:
+      linear-gradient(-17.3deg, rgb(246,243,238) 55.572%, rgba(247,245,245,0) 86.158%),
+      linear-gradient(90deg, rgb(232,228,240) 0%, rgb(223,240,236) 50%, rgb(245,237,232) 100%);
+  }
+
+  /* Floats over scrolled content, like the real iOS status bar — sharp right at
+     its bottom edge, progressively more blurred toward the top. Backdrop-filter
+     can't vary its own blur amount across one layer, so this stacks three blur
+     strengths, each masked to fade in/out at a different height. */
+  .status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 14px 24px 0;
+    z-index: 20;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .status-blur-layer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+  .status-blur-layer.layer-1 {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, black 40%, transparent 100%);
+  }
+  .status-blur-layer.layer-2 {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, black 40%, black 70%, transparent 100%);
+  }
+  .status-blur-layer.layer-3 {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, transparent 60%, black 100%);
+  }
+  .status-bar .time, .status-bar .status-icons { position: relative; z-index: 1; }
+  .status-bar .time {
+    font-weight: 600;
+    font-size: 15px;
+    color: #0c3b4a;
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons img { display: block; }
+
+  /* sticky on scroll, per original Figma spec */
+  .app-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px 4px;
+    position: sticky;
+    top: 0; /* scroll-body's own padding-top already reserves the status bar's space */
+    z-index: 50;
+  }
+  .close-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+  }
+  .close-btn img { width: 24px; height: 24px; pointer-events: none; }
+
+  /* ---- vine stage: holds both the fixed viewport AND the overlaid text panels ---- */
+  .vine-stage {
+    position: relative;
+    width: 393px;
+    height: 760px; /* fixed across every state; tall enough to clear the new, taller pillar-title-block content (state name + large scale + quote + link) without colliding with the shared-stepper below it */
+    transition: height 0.35s ease;
+    touch-action: pan-y; /* let vertical scroll pass through, horizontal is ours */
+    cursor: grab;
+    user-select: none; /* prevents mouse-drag from turning into a text/image selection on desktop */
+    -webkit-user-select: none;
+  }
+  .vine-stage.dragging { cursor: grabbing; }
+
+  /* ---- vine viewport: FIXED size/position, only clips horizontally ---- */
+  .vine-viewport {
+    position: absolute;
+    top: 0; left: -22px;
+    margin-top: 60px;
+    width: stretch;
+    height: 546px; /* matches Figma's real per-position box height */
+    overflow-y: visible;
+    z-index: 1;
+    transform: scale(0.9);
+  }
+
+  /* ---- vine strip: the thing that PANS. Real Figma segment widths, edge to edge. ---- */
+  .vine-strip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 546px;
+    width: 3097px; /* 265 (position 1/home) + 472 x 6 (positions 2-7, all clipped to the same width) */
+    transform: translateX(0px);
+  }
+  .vine-strip.animating {
+    transition: transform 0.54s cubic-bezier(0.33, 1, 0.68, 1); /* 0.45s + 20% */
+  }
+
+  .vine-segment {
+    position: absolute;
+    top: 0;
+    height: 546px;
+  }
+  .seg-1 { left: 0px;    width: 265px; }
+  .seg-2 { left: 265px;  width: 472px; }
+  .seg-3 { left: 737px;  width: 472px; }
+  .seg-4 { left: 1209px; width: 472px; }
+  .seg-5 { left: 1681px; width: 472px; }
+  .seg-6 { left: 2153px; width: 472px; }
+  .seg-7 { left: 2625px; width: 472px; }
+
+  .vine-segment > img.vine-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%; /* clipped exports now match segment aspect ratio exactly, no padding to compensate for */
+    pointer-events: none;
+  }
+
+  /* ============================================================
+     LEAF STATE REFERENCE TABLE — raw Figma geometry for every state, both
+     orientations, pulled from the real "leaf-down" (403:672) and "leaf-up"
+     (403:555) component sets. Kept in one place so any future template
+     (this page, a detail-page header, wherever) can read a state's numbers
+     without re-fetching Figma. All coordinates are relative to the shared
+     253x220 group box (.vine-leaf-group).
+
+     THE RULE: the nub NEVER moves or changes shape within one orientation —
+     only the leaf (rotator + art + rotation) changes per state. Where a row
+     says "TUNED", that's a real DevTools-confirmed value that should be
+     reused as-is; "RAW" means it's straight off Figma and unverified in this
+     structure (expect the same kind of correction Flourishing/Growing got).
+
+     ---- LEAF-DOWN (positions 2, 4, 6) ----
+     Nub — TUNED (from Emotional/position 2): left 13.34px, top -13px,
+       21.911x16.227, img: scaleY(-1) rotate(162.6deg).
+       Image: leaf-nub-a.svg (Flourishing/Thriving/No Data) or
+              leaf-nub-down-shared.svg (Growing/Emerging/Needs Care).
+     Rotator + leaf-art, RAW (not yet corrected for this structure):
+       Flourishing — box -82.76,-93.96 434.322x433.873, rotate(-106.36deg) no
+         flip, leaf-art 349.422x350.083. (Position 2 instead ships the TUNED
+         value -312.76,-116.96 with rot-a/b -62.28/-63.78deg — flip-adjusted
+         via DevTools, so prefer that over this raw row.)
+       Thriving  — box -23,-15 297.619x282.651, scaleY(-1) rotate(120deg),
+         leaf-art 191.947x232.84, img: leaf-flourishing.png's sibling asset
+         (hash bb522151…, same texture leaf-up Thriving uses).
+       Growing   — box -32.57,-14 295.602x284.296, scaleY(-1) rotate(122.22deg),
+         leaf-art 192.159x228.305, img hash 532fa525… (leaf-growing.png).
+       Emerging  — box -56.28,-23 224.434x224.434, scaleY(-1) rotate(111.71deg),
+         leaf-art 172.775x172.775, img: leaf-emerging.png. [in use, position 4]
+       Needs Care— box -51.07,-30 329.926x329.926, rotate(-45deg) no flip,
+         leaf-art 248.369x218.217, img: leaf-needscare.png.
+       No Data   — no rotator/leaf at all, nub only. [in use, position 6]
+
+     ---- LEAF-UP (positions 1, 3, 5, 7 — position 1 is home, not a pillar) ----
+     Nub (Thriving/Growing/Emerging/Needs Care) — TUNED (from Physical/
+       position 3): left -54.25px, top 21.83px, 21.249x14.115, img: plain
+       rotate(-162.6deg), no flip. Image: leaf-nub-c.svg, shared by all four.
+     Nub (No Data) — RAW, own unique box: left 5.38px, top 135.56px,
+       24.498x18.264, img: leaf-nub-nodata-up.svg. [in use, position 7]
+     Nub (Flourishing) — RAW, own unique box: left 4.34px, top 136px,
+       21.911x16.227, img: leaf-nub-a.svg's up-side sibling (not yet
+       downloaded — leaf-up doesn't currently ship a Flourishing position).
+     Rotator + leaf-art, RAW (not yet corrected for this structure):
+       Flourishing — box -82.76,-121.02 434.322x433.873, scaleY(-1)
+         rotate(106.36deg), leaf-art 349.422x350.083, img hash cb92ce67…
+         (not yet downloaded).
+       Thriving  — box -23,-48 297.619x282.651, rotate(-120deg) no flip,
+         leaf-art 191.947x232.84, img hash bb522151… (same texture as
+         leaf-down Thriving).
+       Growing   — box -204.57,28.47 295.602x284.296 — TUNED (from Physical/
+         position 3), rotate(-122.22deg) no flip, leaf-art 192.159x228.305,
+         img: leaf-growing.png.
+       Emerging  — box -56.28,17.75 224.434x224.434, rotate(-111.71deg) no
+         flip, leaf-art 172.775x172.775, img hash e3204e69… (leaf-emerging.png
+         — same texture as leaf-down Emerging, different box/rotation).
+       Needs Care— box -51.07,-82.49 329.926x329.926, scaleY(-1) rotate(45deg),
+         leaf-art 248.369x218.217, img: leaf-needscare.png. [in use, position 5]
+       No Data   — no rotator/leaf at all, nub only. [in use, position 7]
+     ============================================================ */
+
+  /* ---- leaf-down GROUP: matches Figma's real component structure exactly.
+     A fixed 253x220 outer box containing TWO independent pieces:
+       1. a static stem "nub" that never rotates — it's the fixed anchor
+          where the leaf visually attaches to the vine
+       2. a separately-positioned, separately-rotating leaf, sized/placed
+          per real Figma coordinates (not guessed against the flattened PNG)
+     Only the leaf's artwork + rotation values change per state; the nub
+     and the group's own placement stay the same across positions 2, 4, 6. ---- */
+  .vine-leaf-group {
+    position: absolute;
+    width: 253px;
+    height: 220px;
+    /* no z-index here — plain DOM order controls stacking against .vine-bg */
+  }
+
+  /* Shared "leaf-down" slot — positions 2, 4, and 6 all place the group here. */
+  .leaf-down-slot {
+    left: 120px; top: 68.5px;
+  }
+
+  /* "leaf-up" slot — positions 1, 3, and 5 place the group here instead (alternating
+     up/down along the vine). First-pass placement only: raw values aren't available
+     for where this sits along the curve, so this mirrors leaf-down-slot vertically
+     within the 546px-tall segment as a starting point — needs a DevTools tuning pass
+     like the other leaves got. */
+  .leaf-up-slot {
+    left: 120px; top: 257.5px;
+  }
+
+  /* Static nub — fixed position/rotation, real Figma coordinates, never animates */
+  .leaf-nub {
+    position: absolute;
+    left: 13.34px; top: -13px;
+    width: 21.911px; height: 16.227px;
+  }
+  .leaf-nub img {
+    display: block;
+    width: 100%; height: 100%;
+    transform: scaleY(-1) rotate(162.6deg);
+    pointer-events: none;
+  }
+  /* Growing's nub — no vertical flip in Figma for this state (unlike Flourishing),
+     so it's just the plain rotation. Position/size are the raw Figma coordinates
+     relative to the 253x220 group box — first pass, not yet DevTools-tuned. */
+  .leaf-nub.state-growing {
+    left: -54.25px; top: 21.83px;
+    width: 21.249px; height: 14.115px;
+  }
+  .leaf-nub.state-growing img {
+    transform: rotate(-162.6deg);
+  }
+
+  /* Rotating leaf — real Figma position/size relative to the 253x220 group box */
+  .leaf-rotator {
+    position: absolute;
+    left: -312.76px; top: -116.96px;
+    width: 434.322px; height: 433.873px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: 71.812% 21.498%; /* real Figma transform-origin, this element's own box */
+    animation: leafWiggle 8.526s linear infinite; /* doubled from the original 4.263s so each direction keeps the same actual speed */
+  }
+  .leaf-art {
+    width: 349.422px; height: 350.083px;
+  }
+  .leaf-art img {
+    display: block;
+    width: 100%; height: 100%;
+    pointer-events: none; /* prevent native drag hijacking the gesture */
+  }
+  /* Sits between .vine-leaf-group and .leaf-rotator, but is itself never
+     rotated — .leaf-rotator (and its wiggle animation) live inside it. A
+     drop-shadow's offset is relative to the filtered element's OWN
+     (untransformed) space; putting it on the img itself meant the shadow
+     rotated along with the leaf, casting a different screen-direction per
+     state/rotation. Putting it here instead keeps the offset anchored to
+     this non-rotating wrapper, so the shadow always casts toward the same
+     screen-relative direction (down-left) no matter how the leaf inside
+     is rotated. A plain, unpositioned div doesn't change .leaf-rotator's
+     own absolute positioning (it isn't a positioned ancestor), so no other
+     geometry needed to change. */
+  .leaf-shadow-wrap {
+    filter: drop-shadow(-15px -7px 24px rgba(0, 0, 0, 0.22));
+  }
+  /* rotation range is real Figma motion data — set per leaf/state via CSS custom properties */
+  /* Same ease-in-then-hold proportions as the original a->b motion data,
+     mirrored for the b->a return trip instead of snapping back instantly. */
+  @keyframes leafWiggle {
+    0%    { animation-timing-function: cubic-bezier(0.5,0,0.5,1); transform: rotate(var(--rot-a)); }
+    23.4% { animation-timing-function: step-end; transform: rotate(var(--rot-b)); }
+    50%   { animation-timing-function: cubic-bezier(0.5,0,0.5,1); transform: rotate(var(--rot-b)); }
+    73.4% { animation-timing-function: step-end; transform: rotate(var(--rot-a)); }
+    100%  { transform: rotate(var(--rot-a)); }
+  }
+  /* Flourishing — base rotation (-32.28deg) is the leaf's real static orientation,
+     read directly off the Figma layer. The wiggle keeps the same *relative* motion
+     pulled from Figma's motion data (~1.5deg, eased in then held) layered on top of
+     that base, rather than the absolute figure the motion API returned (which was
+     measured against the flattened PNG's own reference frame, not this structure). */
+  .leaf-rotator.state-flourishing {
+    --rot-a: -62.28deg;
+    --rot-b: -63.78deg;
+  }
+  /* Growing — Figma has no flip on this state's leaf (unlike Flourishing), so the
+     static rotation and the motion data's rest value are the same real number
+     (-122.221deg), read straight off Figma with no reconstruction needed. Size/
+     position are the raw Figma geometry for this state's rotator box — first pass,
+     may still need a DevTools nudge like Flourishing did. Same shared wiggle timing
+     as leaf-down (leafWiggle, 8.526s), per direction. */
+  .leaf-rotator.state-growing {
+    left: -204.57px; top: 28.47px;
+    width: 295.602px; height: 284.296px;
+    transform-origin: 52.724% 4.415%;
+    --rot-a: -122.22deg;
+    --rot-b: -124.22deg;
+  }
+  .leaf-rotator.state-growing .leaf-art {
+    width: 192.159px; height: 228.305px;
+  }
+  /* Needs Care (leaf-UP, Cognitive/position 5) — shares its nub entirely with
+     Growing (same wrapper geometry + same image, per Figma), so no new nub
+     class needed, just reuse .leaf-nub.state-growing on the markup. The
+     rotator itself has a vertical flip in Figma (unlike Growing), so — same
+     caveat as Flourishing — these raw numbers are a first pass, not yet
+     reconciled against the flip; expect a DevTools tuning pass. */
+  .leaf-rotator.state-needscare {
+    left: -198.07px; top: -253.49px;
+    width: 322.926px; height: 329.926px;
+    transform-origin: 41.705% 95.611%;
+    --rot-a: 34deg;
+    --rot-b: 33deg;
+  }
+  .leaf-rotator.state-needscare .leaf-art {
+    width: 248.369px; height: 218.217px;
+    transform: scaleY(-1);
+  }
+  /* Emerging (leaf-DOWN, Social/position 4) — also has a vertical flip in
+     Figma, first pass only, same caveat as above. */
+  .leaf-rotator.state-emerging {
+    left: -10.28px; top: -43px;
+    width: 224.434px; height: 224.434px;
+    transform-origin: 50.284% 31.053%;
+    --rot-a: 111.71deg;
+    --rot-b: 112.71deg;
+  }
+  .leaf-rotator.state-emerging .leaf-art {
+    width: 172.775px; height: 172.775px;
+    transform: scaleY(-1);
+  }
+  /* No Data nub (leaf-UP orientation, Spiritual/position 7) — Figma renders no
+     leaf at all for No Data, just this bare nub graphic sitting alone on the
+     vine. Unique size/position vs the shared growing/thriving/emerging/needs-
+     care nub — raw Figma coordinates, first pass, not yet DevTools-tuned. */
+  .leaf-nub.state-nodata-up {
+    left: -48.62px; top: 30.56px;
+    width: 24.498px; height: 18.264px;
+  }
+  .leaf-nub.state-nodata-up img {
+    transform: rotate(-162.6deg);
+  }
+  /* leaf-DOWN nub is the SAME wrapper position for every state per Figma
+     (Flourishing/Growing/Emerging/Needs Care/No Data all share one box), so
+     Emerging (Social/position 4) and No Data (Environmental/position 6) both
+     reuse the plain .leaf-nub — same already-tuned position, only the SVG
+     changes: leaf-nub-down-shared.svg for Emerging, leaf-nub-a.svg for No Data. */
+
+  /* ---- content panels: overlaid on top of the vine, transparent background ---- */
+  .content-panel {
+    position: absolute;
+    top: 0; left: 0;
+    width: 393px;
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .content-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* -- home intro panel -- */
+  .home-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px 24px 0;
+    max-width: 353px;
+  }
+  /* Home -> first pillar exit, driven continuously by --exit-progress (0 to 1)
+     rather than a discrete class toggle. JS sets this on every pointermove
+     during the drag itself (no transition while dragging, so it tracks 1:1
+     with finger position, exactly like the vine's own pan), then re-enables
+     the transition on release so a partial drag eases to its resting value. */
+  .home-intro,
+  .swipe-pill {
+    --exit-progress: 0;
+    transform: translateX(calc(var(--exit-progress) * -48px));
+    opacity: calc(1 - var(--exit-progress));
+    filter: blur(calc(var(--exit-progress) * 8px));
+  }
+  .home-intro.exit-transition,
+  .swipe-pill.exit-transition {
+    transition: transform 0.48s ease, opacity 0.48s ease, filter 0.48s ease; /* 0.4s + 20% */
+  }
+  .home-intro h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 40px;
+    color: var(--brand-1);
+  }
+  .home-intro p {
+    font-size: 17px;
+    line-height: 24px;
+    color: var(--neutral-70);
+  }
+  .swipe-pill {
+    margin-top: 372px; /* clears the vine art; kept tight so the lower-shell peeks up from the bottom */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(269.5deg, rgb(215,233,235) 1.9%, rgba(242,250,252,0) 41%);
+    border-radius: 40px;
+    height: 64px;
+    padding: 4px 4px 4px 0;
+    width: 345px;
+    margin-left: 24px;
+  }
+  .swipe-pill-text { padding-left: 0; } /* total left offset = pill's 24px margin, matching the text block above */
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    direction: ltr;
+    font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+  }
+  .swipe-pill-arrow {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swipe-pill-arrow .material-symbols-outlined {
+    font-size: 32px;
+    color: var(--neutral-70);
+  }
+  .swipe-pill-text .label {
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--brand-1);
+  }
+  .updated-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0edeb;
+    border-radius: 50px;
+    padding: 2px 12px 2px 8px;
+    margin-top: 8px; /* 4px base + 4px extra space below the "Swipe to meet" label */
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--brand-1);
+  }
+  /* "3 updated" chip dot — pulses too, same ping animation as the stepper's "new" dot */
+  .updated-chip .dot {
+    position: relative;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-1);
+  }
+  .updated-chip .dot::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--brand-1);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    animation: dotPulse 2s ease-out infinite;
+  }
+  @keyframes dotPulse {
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.55; }
+    100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+  }
+
+  /* Shared stepper: ONE persistent element, fixed position, lives outside both
+     content panels so it never moves between states — only the active dot changes. */
+  .shared-stepper {
+    position: absolute;
+    top: 680px; /* below the new taller pillar-title-block content (state name + large scale + quote + link) */
+    left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 4px base + 8px extra space between the house icon and the first dot */
+    z-index: 3;
+  }
+  .shared-stepper .house {
+    width: 16px; height: 16px;
+    color: var(--neutral-20); /* default (not on home) — matches the original static icon color */
+    transition: color 0.25s ease;
+  }
+  /* On the home screen itself, the house icon highlights, same idea as the active dot */
+  .shared-stepper.on-home .house { color: var(--neutral-70); }
+
+  .stepper-dots {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 4px base gap + 8px extra spacing between dots specifically */
+  }
+
+  /* Base state: "no data" — 8px, neutral */
+  .shared-stepper .dot {
+    position: relative;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--neutral-20);
+    transition: width 0.25s ease, height 0.25s ease, border-radius 0.25s ease, background 0.25s ease;
+  }
+
+  /* "Has data" — solid, settled */
+  .shared-stepper .dot.has-data { background: var(--brand-1); }
+
+  /* "New data" — solid dot + an expanding, fading pulse ring (notification ping).
+     The ring animation runs unconditionally on every dot from page load (hidden
+     via visibility, not display/animation-toggling) so that whenever a dot later
+     becomes "new" — e.g. after swiping past it — its ring is already on the same
+     shared clock as every other pulsing dot, instead of restarting its own phase
+     from zero and drifting out of sync with the rest. */
+  .shared-stepper .dot.is-new { background: var(--brand-1); }
+  .shared-stepper .dot::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--brand-1);
+    transform: translate(-50%, -50%) scale(1);
+    animation: dotPulse 2s ease-out infinite;
+    visibility: hidden;
+  }
+  .shared-stepper .dot.is-new::after {
+    visibility: visible;
+  }
+
+  /* "Active" — currently viewing this pillar. Note: this exact neutral (#6a6661)
+     is a different value than our --neutral-60 token, per the real component spec. */
+  .shared-stepper .dot.active {
+    width: 16px; height: 8px; border-radius: 12px;
+    background: #6a6661;
+  }
+  .shared-stepper .dot.active::after { visibility: hidden; } /* no pulse while active, but stays on the shared clock */
+
+  /* -- pillar header panel --
+     Sits above the vine: the large pillar title + short description.
+     Transparent, same as home-intro — reads directly over the vine/leaf
+     art rather than covering it. Same slide-in treatment as
+     .pillar-title-block so header and lower content move together. */
+  .pillar-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 16px 24px 12px;
+    transform: translateX(-48px);
+    opacity: 0;
+    filter: blur(8px);
+    transition: transform 0.48s ease, opacity 0.48s ease, filter 0.48s ease;
+  }
+  .pillar-header.enter-from-right { transform: translateX(48px); }
+  .pillar-header.no-entrance-transition { transition: none !important; }
+  .content-panel.visible .pillar-header {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  .pillar-header-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .pillar-header-row .material-symbols-outlined {
+    font-size: 32px;
+    color: var(--brand-1);
+    flex-shrink: 0;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 32;
+  }
+  /* Iris2/Headline/XS-400 per Figma (node 704:8454) */
+  .pillar-header-row h1 {
+    font-family: 'Inclusive Sans', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 24px;
+    color: var(--brand-1);
+    flex: 1;
+    min-width: 0;
+  }
+  /* Iris2/Body/SM-400 per Figma */
+  .pillar-header p {
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--neutral-80);
+  }
+
+  /* -- pillar title-block panel --
+     Now holds the lower half of a pillar panel: the large scale, a clamped
+     state description, and the "view breakdown" link. Slides in from the
+     left with a fade + blur, same treatment as the home page's text blocks
+     (home-intro/swipe-pill) and the new .pillar-header above, so entering
+     any pillar reads consistently with leaving home. Keyed off the shared
+     .content-panel.visible toggle rather than a continuous drag value,
+     since this needs to work for every pillar-to-pillar pair, not just one
+     specific boundary. */
+  .pillar-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 24px;
+    margin-top: 424px;
+    /* Default: enters from the left (used for forward navigation — swiping
+       left). JS toggles .enter-from-right directly on this element, on the
+       specific panel that's about to become visible, right before .visible
+       is added — a plain class on the animated element itself, not an
+       inherited custom property from a distant ancestor, so there's no
+       inheritance-timing race with the transition that follows. */
+    transform: translateX(-48px);
+    opacity: 0;
+    filter: blur(8px);
+    transition: transform 0.48s ease, opacity 0.48s ease, filter 0.48s ease;
+  }
+  .pillar-title-block.enter-from-right {
+    transform: translateX(48px); /* backward navigation — swiping right — enters from the right, same side as the swipe */
+  }
+  /* Used for one frame while JS forces this element back to its correct
+     "hidden" position before re-revealing it — see goTo(). Without this, a
+     panel re-triggered while still mid-exit from a fast previous swipe would
+     start its new transition from wherever it currently was, not from the
+     correct side, which is what made the direction look random. */
+  .pillar-title-block.no-entrance-transition {
+    transition: none !important;
+  }
+  .content-panel.visible .pillar-title-block {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  /* "New info" indicator — same pulse concept as the stepper dot, matching its
+     base 8px size, now sitting in .pillar-header-row next to the pillar name
+     to flag fresh data on this pillar. */
+  .pillar-new-dot {
+    position: relative;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--brand-1);
+    flex-shrink: 0;
+  }
+  .pillar-new-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--brand-1);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.55;
+    animation: dotPulse 2s ease-out infinite;
+  }
+  /* Smaller variant — used inside the "view breakdown" button, scaled to
+     2/3 of the default (16px -> 11px). */
+  .pillar-new-dot.sm,
+  .pillar-new-dot.sm::after {
+    width: 11px;
+    height: 11px;
+  }
+  /* State name + large scale, grouped exactly like the detail pages'
+     .state-inner/.state-block so the two read consistently. */
+  .state-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  /* Iris2/Display/XL-400 per Figma (node 704:8454) — smaller than the
+     detail page's own state-name heading (48px/64px), this is the swipe
+     screen's own size. */
+  .state-inner h1 {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 44px;
+    color: var(--brand-1);
+  }
+  /* ============================================================
+     DOMAIN SCALE — LARGE. Matches Figma's "domain-scale-large": labels +
+     progressively filled track + a larger marker for the current position.
+     Shared by the detail pages and this page's pillar-title-block.
+     ============================================================ */
+  .domain-scale-large {
+    width: 100%;
+    margin: 8px 0 0;
+  }
+  /* Labels and dots share the same 5-column grid, so a dot's column is always
+     the exact same width as its label's column — that's what guarantees the
+     dot centers exactly under its label, regardless of label text length. */
+  .domain-scale-large .labels {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin-bottom: 11px; /* 15px - 4px */
+  }
+  .domain-scale-large .labels span {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6a6661;
+  }
+  .domain-scale-large .labels span.active {
+    color: var(--brand-1);
+    font-weight: 600;
+  }
+  .domain-scale-large .track-wrap {
+    position: relative;
+    height: 24px;
+  }
+  .domain-scale-large .track-base {
+    position: absolute;
+    top: 10.5px; left: 0; right: 0;
+    height: 3px;
+    background: var(--neutral-20);
+    border-radius: 11px;
+  }
+  .domain-scale-large .track-fill {
+    position: absolute;
+    top: 10.5px; left: 0;
+    height: 3px;
+    background: var(--brand-1);
+    border-radius: 11px;
+    transition: width 0.3s ease;
+  }
+  .domain-scale-large .dots {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 24px; /* same height as track-wrap, so centering lands exactly on the line */
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    z-index: 1;
+  }
+  .domain-scale-large .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--neutral-20); /* upcoming, not yet reached */
+    justify-self: center;
+  }
+  .domain-scale-large .dot.passed { background: var(--brand-1); }
+  .domain-scale-large .dot.current {
+    width: 12px; height: 12px;
+    background: var(--brand-1);
+  }
+
+  /* State description under the large scale, ellipsized after 3 lines so a
+     long quote can't push the "view breakdown" link (or the vine below it)
+     around. Iris2/Body/SM-400 per Figma (node 704:8454), same token as the
+     .pillar-header description above. */
+  .state-quote-clamped {
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--neutral-80);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* ---- scale breakdown pill link — same component as the detail pages ---- */
+  .scale-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    align-self: flex-start;
+    background: #d6e4ef;
+    border: none;
+    border-radius: 40px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--brand-1);
+    cursor: pointer;
+  }
+  /* ---- fixed lower shell: care tools + feedback ---- */
+  .lower-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 24px 0 48px;
+  }
+  /* Home only — hidden on every pillar swipe panel via JS (goTo()) */
+  .lower-shell.hidden { display: none; }
+  .care-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 16px;
+  }
+  .care-tools-label {
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--brand-1);
+  }
+  .care-card-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .care-card {
+    background: var(--sand-2);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px 16px 16px;
+    height: 80px;
+    box-shadow: 0 10px 7.5px rgba(0,0,0,0.1), 0 4px 3px rgba(0,0,0,0.1);
+  }
+  .care-icon {
+    width: 48px; height: 48px; border-radius: 50px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .care-icon img { width: 32px; height: 32px; }
+  .care-icon.mood { background: #f5e0dc; }
+  .care-icon.journal { background: #e0ecd9; }
+  .care-icon.session { background: #dfe1ef; }
+  .care-icon.goal { background: #fef0cf; }
+  .care-text { flex: 1; }
+  .care-text .title { font-size: 18px; font-weight: 500; color: var(--text-default); }
+  .care-text .subtitle { font-size: 14px; color: var(--neutral-60); }
+  .feedback-card {
+    margin: 0 auto;
+    width: 361px;
+    background: var(--sand-1);
+    border: 1px solid var(--neutral-20);
+    border-radius: 24px;
+    padding: 16px 24px 16px 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feedback-text { flex: 1; }
+  .feedback-text .title { font-size: 16px; font-weight: 500; color: var(--text-default); }
+  .feedback-text .subtitle { font-size: 14px; color: var(--neutral-90); }
+  .feedback-icons { display: flex; gap: 16px; }
+  .feedback-icons img { width: 24px; height: 24px; }
+
+  .home-indicator-wrapper {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+    background: transparent;
+    pointer-events: none; /* floats over content without blocking scroll/taps */
+  }
+  .home-indicator {
+    width: 134px; height: 5px;
+    background: #0c3b4a;
+    opacity: 0.2;
+    border-radius: 100px;
+  }
+
+  .scroll-body {
+    height: 852px; /* full phone height — content scrolls behind both the status bar and the home indicator */
+    padding-top: 44px; /* restores the space the status bar used to reserve in flow; scrolls away as you scroll down */
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* old Edge/IE */
+  }
+  .scroll-body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, modern Edge */
+  }
+  .scroll-body.scroll-dragging {
+    cursor: grabbing;
+    user-select: none; /* prevents text selection while dragging over copy */
+  }
+
+  /* ---- POC controls (not part of the design, just for testing) ---- */
+  .poc-controls {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+  }
+  /* ?screenshot=1 hides the dev prev/next controls, for taking clean
+     screenshots of just the phone mockup */
+  body.screenshot-mode .poc-controls { display: none; }
+  .poc-controls button {
+    font-family: 'Inclusive Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: none;
+    background: var(--brand-1);
+    color: white;
+    cursor: pointer;
+  }
+  .poc-controls button:disabled {
+    background: var(--neutral-20);
+    cursor: default;
+  }
+  .poc-label {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Inclusive Sans', sans-serif;
+    font-size: 13px;
+    color: #666;
+    background: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    max-width: 320px;
+    text-align: center;
+  }
+</style>
+<style id="standalone-view">
+  /* Opened in its own tab: the phone sits centered with space above it, rounded corners and a soft shadow, and the page scrolls on short windows */
+  html.standalone body{align-items:flex-start!important;justify-content:center!important;padding:48px 16px 64px!important;overflow:auto!important;min-height:100vh;box-sizing:border-box}
+  html.standalone .phone{border-radius:44px!important;overflow:hidden!important;box-shadow:0 30px 60px -30px rgba(20,30,50,.45),0 4px 14px rgba(20,30,50,.08)!important;flex:none}
+  html.standalone,html.standalone body{overflow-x:hidden!important}
+</style>
+<script>
+/* Standalone tab on a narrow screen: shrink the 393px phone to fit, so there is no sideways scroll */
+(function(){if(window.self!==window.top)return;function fit(){var ph=document.querySelector('.phone');if(!ph)return;var k=Math.min(1,(document.documentElement.clientWidth-32)/393);ph.style.zoom=k<1?k:'';}
+document.addEventListener('DOMContentLoaded',fit);addEventListener('resize',fit);})();
+</script>
+<style id="embed-overrides">
+  /* Case-study embed: no dev label, no Prev/Next (swipe only), phone fills the frame; the page draws the shadow */
+  .poc-label,.poc-controls{display:none!important}
+  .phone{box-shadow:none!important}
+  html.embedded body{background:transparent!important;min-height:0!important;height:100vh;padding:0!important}
+  html.standalone body{background:#e8e4e4}
+</style>
+<script>document.documentElement.classList.add(window.self!==window.top?'embedded':'standalone')</script>
+</head>
+<body>
+
+<div class="poc-label">Proof of concept — drag/swipe the vine area left/right, or use the buttons. All 7 positions (Home + 6 pillars) are wired. Vine art is a rough placeholder pass.</div>
+
+<div class="phone" id="phone">
+  <div class="status-bar">
+    <div class="status-blur-layer layer-1"></div>
+    <div class="status-blur-layer layer-2"></div>
+    <div class="status-blur-layer layer-3"></div>
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <img src="figma-assets/ios-signal.svg" alt="">
+      <img src="figma-assets/ios-wifi.svg" alt="">
+      <img src="figma-assets/ios-battery.svg" alt="">
+    </div>
+  </div>
+
+  <div class="scroll-body">
+    <div class="app-header">
+      <div class="close-btn"><img src="figma-assets/close.svg" alt="close"></div>
+    </div>
+
+    <!-- vine stage: viewport (fixed) + overlaid text panels, all draggable together -->
+    <div class="vine-stage" id="vineStage">
+
+      <div class="vine-viewport">
+        <div class="vine-strip" id="vineStrip">
+
+          <div class="vine-segment seg-1">
+            <img class="vine-bg" src="figma-assets/vine-pos1.png" alt="">
+            <!-- leaf is baked into this image, decorative/dim, not separately animated -->
+          </div>
+
+          <div class="vine-segment seg-2">
+            <div class="vine-leaf-group leaf-down-slot">
+              <div class="leaf-shadow-wrap">
+                <div class="leaf-rotator state-flourishing">
+                  <div class="leaf-art">
+                    <img src="figma-assets/leaf-flourishing.png" alt="" draggable="false">
+                  </div>
+                </div>
+              </div>
+              <div class="leaf-nub">
+                <img src="figma-assets/leaf-nub-a.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos2.png" alt="">
+          </div>
+
+          <div class="vine-segment seg-3">
+            <div class="vine-leaf-group leaf-up-slot">
+              <div class="leaf-shadow-wrap">
+                <div class="leaf-rotator state-growing">
+                  <div class="leaf-art">
+                    <img src="figma-assets/leaf-growing.png" alt="" draggable="false">
+                  </div>
+                </div>
+              </div>
+              <div class="leaf-nub state-growing">
+                <img src="figma-assets/leaf-nub-c.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos3.png" alt="">
+          </div>
+
+          <div class="vine-segment seg-4">
+            <div class="vine-leaf-group leaf-down-slot">
+              <div class="leaf-shadow-wrap">
+                <div class="leaf-rotator state-emerging">
+                  <div class="leaf-art">
+                    <img src="figma-assets/leaf-emerging.png" alt="" draggable="false">
+                  </div>
+                </div>
+              </div>
+              <div class="leaf-nub">
+                <img src="figma-assets/leaf-nub-down-shared.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos4.png" alt="">
+          </div>
+
+          <div class="vine-segment seg-5">
+            <div class="vine-leaf-group leaf-up-slot">
+              <div class="leaf-shadow-wrap">
+                <div class="leaf-rotator state-needscare">
+                  <div class="leaf-art">
+                    <img src="figma-assets/leaf-needscare.png" alt="" draggable="false">
+                  </div>
+                </div>
+              </div>
+              <div class="leaf-nub state-growing">
+                <img src="figma-assets/leaf-nub-c.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos5.png" alt="">
+          </div>
+
+          <!-- No Data: Figma renders no rotating leaf at all, just the bare nub -->
+          <div class="vine-segment seg-6">
+            <div class="vine-leaf-group leaf-down-slot">
+              <div class="leaf-nub">
+                <img src="figma-assets/leaf-nub-a.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos6.png" alt="">
+          </div>
+
+          <div class="vine-segment seg-7">
+            <div class="vine-leaf-group leaf-up-slot">
+              <div class="leaf-nub state-nodata-up">
+                <img src="figma-assets/leaf-nub-nodata-up.svg" alt="" draggable="false">
+              </div>
+            </div>
+            <img class="vine-bg" src="figma-assets/vine-pos7.png" alt="">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="content-panel visible" id="panelHome">
+        <div class="home-intro">
+          <h1>Six pillars of your life, one honest picture.</h1>
+          <p>We've heard what you've shared in your sessions and check-ins. Here's what we've noticed about you →</p>
+        </div>
+        <div class="swipe-pill">
+          <div class="swipe-pill-text">
+            <div class="label">Swipe to meet your pillars</div>
+            <div class="updated-chip"><span class="dot"></span>3 updated</div>
+          </div>
+          <div class="swipe-pill-arrow" aria-hidden="true">
+            <span class="material-symbols-outlined">arrow_right_alt</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelEmotional">
+        <div class="pillar-header" data-detail-href="pillar-detail-emotional.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="emotional"></span>
+            <h1>Emotional Wellness Pillar</h1>
+          </div>
+          <p>How you're processing feelings, handling stress, and bouncing back from hard moments.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-emotional.html">
+          <div class="state-inner">
+            <h1>Flourishing</h1>
+            <div class="domain-scale-large" data-pillar-scale="emotional" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">You move through hard feelings without losing yourself in them, and you recover faster. You know yourself well enough that not much catches you completely off guard.</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View emotional breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelPhysical">
+        <div class="pillar-header" data-detail-href="pillar-detail-physical.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="physical"></span>
+            <h1>Physical Wellness Pillar</h1>
+          </div>
+          <p>How you're getting rest, staying active, and fueling your body well.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-physical.html">
+          <div class="state-inner">
+            <h1>Growing</h1>
+            <div class="domain-scale-large" data-pillar-scale="physical" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">Sleep, movement, or energy patterns are becoming more visible to you. You're experimenting with small changes and starting to notice their effects.</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View physical breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelSocial">
+        <div class="pillar-header" data-detail-href="pillar-detail-social.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="social"></span>
+            <h1>Social Wellness Pillar</h1>
+          </div>
+          <p>How you're connecting with people, feeling supported, and finding real belonging.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-social.html">
+          <div class="state-inner">
+            <h1>Emerging</h1>
+            <div class="domain-scale-large" data-pillar-scale="social" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">You want more depth in your relationships but don't quite know how to get there. Some connections are starting to mean more than others. You're just not sure which ones yet.</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View social breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelCognitive">
+        <div class="pillar-header" data-detail-href="pillar-detail-cognitive.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="cognitive"></span>
+            <h1>Cognitive Wellness Pillar</h1>
+          </div>
+          <p>How you're staying curious, feeling mentally engaged, and learning new things.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-cognitive.html">
+          <div class="state-inner">
+            <h1>Needs Care</h1>
+            <div class="domain-scale-large" data-pillar-scale="cognitive" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">Motivation is hard to find. Tasks that used to feel manageable feel heavier, or you're going through the motions without much real engagement.</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View cognitive breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelEnvironmental">
+        <div class="pillar-header" data-detail-href="pillar-detail-environmental.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="environmental"></span>
+            <h1>Environmental Wellness Pillar</h1>
+          </div>
+          <p>How your surroundings are shaping your focus, energy, and mood.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-environmental.html">
+          <div class="state-inner">
+            <h1>Still Building...</h1>
+            <!-- No Data large scale: same track/dots, all neutral — no fill, no current marker -->
+            <div class="domain-scale-large" data-pillar-scale="environmental" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">You haven't shared enough for us to scale your environmental wellness, but you might already have a sense of where you fall:</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View environmental breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="content-panel" id="panelSpiritual">
+        <div class="pillar-header" data-detail-href="pillar-detail-spiritual.html">
+          <div class="pillar-header-row">
+            <span class="material-symbols-outlined" data-pillar-icon="spiritual"></span>
+            <h1>Spiritual Wellness Pillar</h1>
+          </div>
+          <p>How you're exploring purpose, living your values, and finding meaning in daily life.</p>
+        </div>
+        <div class="pillar-title-block" data-detail-href="pillar-detail-spiritual.html">
+          <div class="state-inner">
+            <h1>Still Building...</h1>
+            <div class="domain-scale-large" data-pillar-scale="spiritual" data-scale-type="large">
+              <div class="labels">
+                <span>Needs Care</span><span>Emerging</span><span>Growing</span><span>Thriving</span><span>Flourishing</span>
+              </div>
+              <div class="track-wrap">
+                <div class="track-base"></div>
+                <div class="track-fill"></div>
+                <div class="dots">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="state-quote-clamped">You haven't shared enough for us to scale your spiritual wellness, but you might already have a sense of where you fall:</p>
+          <button class="scale-link" type="button">
+            <div class="pillar-new-dot sm" aria-hidden="true"></div>
+            <span>View spiritual breakdown</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- shared stepper: fixed position, never moves between states — only the active dot changes -->
+      <div class="shared-stepper" id="sharedStepper">
+        <svg class="house" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M3.20039 12.6008V6.98411L2.13372 7.80078L1.40039 6.83411L8.00039 1.80078L14.6004 6.83411L13.8671 7.80078L12.8004 6.98411V12.6008H3.20039ZM5.60039 9.00078C5.43372 9.00078 5.29206 8.94245 5.17539 8.82578C5.05872 8.70911 5.00039 8.56745 5.00039 8.40078C5.00039 8.24523 5.05872 8.10634 5.17539 7.98411C5.29206 7.86189 5.43372 7.80078 5.60039 7.80078C5.75595 7.80078 5.89484 7.86189 6.01706 7.98411C6.13928 8.10634 6.20039 8.24523 6.20039 8.40078C6.20039 8.56745 6.13928 8.70911 6.01706 8.82578C5.89484 8.94245 5.75595 9.00078 5.60039 9.00078ZM8.00039 9.00078C7.83372 9.00078 7.69206 8.94245 7.57539 8.82578C7.45872 8.70911 7.40039 8.56745 7.40039 8.40078C7.40039 8.24523 7.45872 8.10634 7.57539 7.98411C7.69206 7.86189 7.83372 7.80078 8.00039 7.80078C8.15595 7.80078 8.29484 7.86189 8.41706 7.98411C8.53928 8.10634 8.60039 8.24523 8.60039 8.40078C8.60039 8.56745 8.53928 8.70911 8.41706 8.82578C8.29484 8.94245 8.15595 9.00078 8.00039 9.00078ZM10.4004 9.00078C10.2337 9.00078 10.0921 8.94245 9.97539 8.82578C9.85872 8.70911 9.80039 8.56745 9.80039 8.40078C9.80039 8.24523 9.85872 8.10634 9.97539 7.98411C10.0921 7.86189 10.2337 7.80078 10.4004 7.80078C10.5559 7.80078 10.6948 7.86189 10.8171 7.98411C10.9393 8.10634 11.0004 8.24523 11.0004 8.40078C11.0004 8.56745 10.9393 8.70911 10.8171 8.82578C10.6948 8.94245 10.5559 9.00078 10.4004 9.00078Z" fill="currentColor"/>
+        </svg>
+        <div class="stepper-dots">
+          <div class="dot" data-pillar="0"></div>
+          <div class="dot" data-pillar="1"></div>
+          <div class="dot" data-pillar="2"></div>
+          <div class="dot" data-pillar="3"></div>
+          <div class="dot" data-pillar="4"></div>
+          <div class="dot" data-pillar="5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FIXED lower shell: home only (position 1) — toggled via JS, not shown on pillar swipe panels -->
+    <div class="lower-shell" id="lowerShell">
+      <div class="care-tools">
+        <div class="care-tools-label">Your picture builds from what you share:</div>
+        <div class="care-card-group">
+          <div class="care-card">
+            <div class="care-icon mood"><img src="figma-assets/heart-smile.svg" alt=""></div>
+            <div class="care-text">
+              <div class="title">Log a mood</div>
+              <div class="subtitle">How are you feeling?</div>
+            </div>
+          </div>
+          <div class="care-card">
+            <div class="care-icon journal"><img src="figma-assets/book-5.svg" alt=""></div>
+            <div class="care-text">
+              <div class="title">Write a journal entry</div>
+              <div class="subtitle">Jot down your thoughts</div>
+            </div>
+          </div>
+          <div class="care-card">
+            <div class="care-icon session"><img src="figma-assets/trophy.svg" alt=""></div>
+            <div class="care-text">
+              <div class="title">Create a goal</div>
+              <div class="subtitle">What outcomes are you hoping for?</div>
+            </div>
+          </div>
+          <div class="care-card">
+            <div class="care-icon goal"><img src="figma-assets/chair.svg" alt=""></div>
+            <div class="care-text">
+              <div class="title">Schedule a session</div>
+              <div class="subtitle">Book with a therapist</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback-card">
+        <div class="feedback-text">
+          <div class="title">Tell us what you think</div>
+          <div class="subtitle">Is your Wellness Picture something you'd like to continue seeing?</div>
+        </div>
+        <div class="feedback-icons">
+          <img src="figma-assets/thumb-down.svg" alt="">
+          <img src="figma-assets/thumb-up.svg" alt="">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator-wrapper">
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<div class="poc-controls">
+  <button id="prevBtn" disabled>← Prev</button>
+  <button id="nextBtn">Next →</button>
+</div>
+
+<script src="figma-assets/pillar-data.js"></script>
+<script>
+  applyPillarIcons();
+  applyPillarScales();
+
+  const states = ['home', 'emotional', 'physical', 'social', 'cognitive', 'environmental', 'spiritual'];
+  let current = 0;
+
+  // Real pan offsets, pulled directly from the actual Figma frame data
+  // (the "pillar home" vs "emotional pillar-has data" frames), not derived —
+  // segments are 265px and 472px wide, not a uniform width.
+  // Positions 3-7's offsets are a first-pass guess (same 40px local offset into
+  // each segment as position 2's), not yet confirmed against a real Figma frame.
+  const PAN_OFFSETS = [0, -305, -777, -1249, -1721, -2193, -2665];
+  const DRAG_THRESHOLD = 150; // px of drag before committing to the next/prev state
+
+  const vineStage = document.getElementById('vineStage');
+  const vineStrip = document.getElementById('vineStrip');
+  const panelHome = document.getElementById('panelHome');
+  const panelEmotional = document.getElementById('panelEmotional');
+  const panelPhysical = document.getElementById('panelPhysical');
+  const panelSocial = document.getElementById('panelSocial');
+  const panelCognitive = document.getElementById('panelCognitive');
+  const panelEnvironmental = document.getElementById('panelEnvironmental');
+  const panelSpiritual = document.getElementById('panelSpiritual');
+  // Same order as `states` — lets goTo() look up "the panel about to become
+  // visible" by index, to set its entrance direction directly on it.
+  const panels = [panelHome, panelEmotional, panelPhysical, panelSocial, panelCognitive, panelEnvironmental, panelSpiritual];
+  const homeIntro = panelHome.querySelector('.home-intro');
+  const swipePillEl = panelHome.querySelector('.swipe-pill');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const stepperDots = document.querySelectorAll('#sharedStepper .dot');
+  const sharedStepper = document.getElementById('sharedStepper');
+  const lowerShell = document.getElementById('lowerShell');
+
+  // Each pillar's base state: 'no-data' | 'has-data' | 'new'.
+  // 'new' pillars pulse (unviewed fresh data) — matches the "3 updated" chip.
+  // Extend this array as more pillars are built.
+  const BASE_PILLAR_STATES = ['new', 'new', 'has-data', 'new', 'no-data', 'no-data'];
+
+  // Visiting a pillar's detail page is the trigger that settles it from "new"
+  // to "has-data" — the detail page sets this flag on load. Checked here
+  // (rather than on the detail page) since that's the only place a "new"
+  // pillar's pulsing dot/indicator actually lives.
+  const PILLAR_SLUGS = states.slice(1); // states minus 'home', in the same order as PILLAR_STATES
+  const PILLAR_STATES = BASE_PILLAR_STATES.map((state, i) => {
+    if (state === 'new' && localStorage.getItem(`pillarViewed_${PILLAR_SLUGS[i]}`) === '1') {
+      return 'has-data';
+    }
+    return state;
+  });
+
+  // Settle each pillar's own "new" indicator dot(s) — the header one and the
+  // matching small one in the "view breakdown" button — to match. Static
+  // markup, not otherwise wired to PILLAR_STATES the way the stepper dots are.
+  PILLAR_STATES.forEach((state, i) => {
+    const panel = panels[i + 1]; // panels[0] is home, which has no pillar-new-dot
+    if (!panel) return;
+    panel.querySelectorAll('.pillar-new-dot').forEach((newDot) => {
+      newDot.style.display = state === 'new' ? '' : 'none';
+    });
+  });
+
+  function targetOffset(index) {
+    return PAN_OFFSETS[index];
+  }
+
+  // Maps the vine's live translateX to a 0..1 fraction of the home->first-pillar
+  // range specifically. Scoped to that one pair on purpose — once more pillars
+  // exist, dragging between e.g. pillar 2 and 3 shouldn't touch this at all.
+  function getExitProgress(offsetPx) {
+    const homeOffset = PAN_OFFSETS[0];
+    const firstPillarOffset = PAN_OFFSETS[1];
+    const raw = (offsetPx - homeOffset) / (firstPillarOffset - homeOffset);
+    return Math.max(0, Math.min(1, raw));
+  }
+
+  function setExitProgress(value, animated) {
+    homeIntro.classList.toggle('exit-transition', animated);
+    swipePillEl.classList.toggle('exit-transition', animated);
+    homeIntro.style.setProperty('--exit-progress', value);
+    swipePillEl.style.setProperty('--exit-progress', value);
+  }
+
+  function goTo(index, animate = true) {
+    const nextCurrent = Math.max(0, Math.min(states.length - 1, index));
+    // Entering and leaving title-blocks slide together in one consistent
+    // direction: forward (swipe left) -> new content enters from the right
+    // and the old content exits to the left; backward (swipe right) -> the
+    // reverse. Reversed from the previous pass on purpose.
+    if (nextCurrent !== current) {
+      const enterFromRight = nextCurrent > current;
+      // .pillar-header (new title+description above the vine) and
+      // .pillar-title-block (scale+quote+link below it) slide in/out
+      // together — both live in the entering/leaving panel.
+      const enteringBlocks = panels[nextCurrent] ? panels[nextCurrent].querySelectorAll('.pillar-header, .pillar-title-block') : [];
+      const leavingBlocks = panels[current] ? panels[current].querySelectorAll('.pillar-header, .pillar-title-block') : [];
+      enteringBlocks.forEach((block) => {
+        // Force a clean, non-transitioning snap to the correct hidden
+        // position first (in case this panel was still mid-flight from a
+        // fast previous swipe), THEN let .visible (added below) animate it
+        // in from that guaranteed-correct starting point.
+        block.classList.add('no-entrance-transition');
+        block.classList.toggle('enter-from-right', enterFromRight);
+        void block.offsetHeight; // force reflow to commit the above before removing the guard
+        block.classList.remove('no-entrance-transition');
+      });
+      leavingBlocks.forEach((block) => {
+        // Opposite side from the entering panel, so it exits toward that
+        // side once .visible is removed from it below, instead of exiting
+        // toward whichever side it happened to last enter from.
+        block.classList.toggle('enter-from-right', !enterFromRight);
+      });
+    }
+    current = nextCurrent;
+    vineStrip.classList.toggle('animating', animate);
+    vineStrip.style.transform = `translateX(${targetOffset(current)}px)`;
+
+    // Snap the home <-> first pillar exit to its resting value (0 or 1),
+    // eased via the transition class — covers clicks/keyboard nav and any
+    // drag that didn't end exactly at 0/1. Live dragging sets this directly
+    // in pointermove instead, with the transition off, so it tracks 1:1.
+    setExitProgress(current === 0 ? 0 : 1, true);
+
+    sharedStepper.classList.toggle('on-home', states[current] === 'home');
+    lowerShell.classList.toggle('hidden', states[current] !== 'home');
+    panelHome.classList.toggle('visible', states[current] === 'home');
+    panelEmotional.classList.toggle('visible', states[current] === 'emotional');
+    panelPhysical.classList.toggle('visible', states[current] === 'physical');
+    panelSocial.classList.toggle('visible', states[current] === 'social');
+    panelCognitive.classList.toggle('visible', states[current] === 'cognitive');
+    panelEnvironmental.classList.toggle('visible', states[current] === 'environmental');
+    panelSpiritual.classList.toggle('visible', states[current] === 'spiritual');
+
+    // pillar index is state index minus 1 (state 0 is "home", not a pillar)
+    const activePillar = current - 1;
+    stepperDots.forEach((dot, i) => {
+      const isActive = i === activePillar;
+      dot.classList.toggle('active', isActive);
+      dot.classList.toggle('has-data', !isActive && PILLAR_STATES[i] === 'has-data');
+      dot.classList.toggle('is-new', !isActive && PILLAR_STATES[i] === 'new');
+    });
+
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === states.length - 1;
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  // ---- unified pointer-based drag (works for mouse, touch, and pen) ----
+  // Direction is only decided once movement is clearly one way or the other —
+  // this is what lets vertical scroll pass through untouched instead of being
+  // hijacked by the horizontal swipe on the very first pixel of movement.
+  const DIRECTION_THRESHOLD = 3; // px of movement before committing to a direction — kept small so the swipe feels immediate
+  let pending = false;   // pointer is down, direction not yet decided
+  let dragging = false;  // committed to a horizontal swipe
+  let startX = 0;
+  let startY = 0;
+  let baseOffset = 0;
+
+  vineStage.addEventListener('pointerdown', e => {
+    pending = true;
+    dragging = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    baseOffset = targetOffset(current);
+  });
+
+  vineStage.addEventListener('pointermove', e => {
+    if (!pending) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (!dragging) {
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+      if (absDx < DIRECTION_THRESHOLD && absDy < DIRECTION_THRESHOLD) return; // not enough movement yet
+      if (absDy > absDx) { pending = false; return; } // vertical — hand off to native scroll
+
+      // horizontal — commit to the swipe
+      dragging = true;
+      vineStrip.classList.remove('animating');
+      vineStage.classList.add('dragging');
+      vineStage.setPointerCapture(e.pointerId);
+    }
+
+    // clamp so you can't drag past the first or last position
+    const min = targetOffset(states.length - 1);
+    const max = targetOffset(0);
+    const next = Math.max(min, Math.min(max, baseOffset + dx));
+    vineStrip.style.transform = `translateX(${next}px)`;
+
+    // Home <-> first pillar exit tracks the vine's own live position — same
+    // gesture, smaller distance (48px vs 305px) plus fade/blur, which is what
+    // gives it a parallax feel: vine reads as foreground, text as background.
+    setExitProgress(getExitProgress(next), false);
+  });
+
+  function endDrag(e) {
+    pending = false;
+    if (!dragging) return;
+    dragging = false;
+    vineStage.classList.remove('dragging');
+    const delta = e.clientX - startX;
+    const threshold = DRAG_THRESHOLD;
+    if (delta < -threshold && current < states.length - 1) {
+      goTo(current + 1);
+    } else if (delta > threshold && current > 0) {
+      goTo(current - 1);
+    } else {
+      goTo(current); // snap back
+    }
+  }
+
+  vineStage.addEventListener('pointerup', endDrag);
+  vineStage.addEventListener('pointercancel', endDrag);
+
+  // ---- click-and-drag vertical scroll for mouse users ----
+  // Native overflow scrolling responds to wheel and touch-drag, but not a
+  // literal mouse click-drag — useful to have anyway for user testing on a
+  // mouse with no wheel/trackpad handy. Scoped to pointerType 'mouse' only
+  // (touch already scrolls natively) and skips the vine-stage area entirely,
+  // which already owns pointer drags there for the horizontal swipe.
+  const scrollBody = document.querySelector('.scroll-body');
+  let scrollDragging = false;
+  let scrollStartY = 0;
+  let scrollStartTop = 0;
+
+  scrollBody.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse' || vineStage.contains(e.target)) return;
+    scrollDragging = true;
+    scrollStartY = e.clientY;
+    scrollStartTop = scrollBody.scrollTop;
+    scrollBody.classList.add('scroll-dragging');
+  });
+  scrollBody.addEventListener('pointermove', e => {
+    if (!scrollDragging) return;
+    scrollBody.scrollTop = scrollStartTop - (e.clientY - scrollStartY);
+  });
+  function endScrollDrag() {
+    scrollDragging = false;
+    scrollBody.classList.remove('scroll-dragging');
+  }
+  scrollBody.addEventListener('pointerup', endScrollDrag);
+  scrollBody.addEventListener('pointercancel', endScrollDrag);
+  scrollBody.addEventListener('pointerleave', endScrollDrag);
+
+  // Resume at whichever pillar we came back from (e.g. the detail page's
+  // back button links to ?state=emotional), defaulting to home otherwise.
+  const requestedState = new URLSearchParams(window.location.search).get('state');
+  const initialIndex = states.indexOf(requestedState);
+  goTo(initialIndex === -1 ? 0 : initialIndex, false);
+  if (new URLSearchParams(window.location.search).get('screenshot')) {
+    document.body.classList.add('screenshot-mode');
+  }
+
+  // The "view breakdown" button is the only touch target into a pillar's
+  // detail page now — .pillar-header/.pillar-title-block are no longer
+  // whole-block tap targets. Reads data-detail-href off the nearest
+  // ancestor rather than hardcoding the URL per button, so it stays in
+  // sync with a single source of truth per pillar.
+  document.querySelectorAll('.scale-link').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      window.location.href = btn.closest('[data-detail-href]').dataset.detailHref;
+    });
+  });
+</script>
+
+</body>
+</html>
